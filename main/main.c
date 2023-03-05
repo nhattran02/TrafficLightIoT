@@ -17,7 +17,9 @@
 
 
 #define LED                 2 
-#define BUTTON              15  
+#define BUTTON_UP           15
+#define BUTTON_DOWN         4
+#define BUTTON_ENTER        13
 #define EX_UART_NUM         UART_NUM_0
 #define PATTERN_CHR_NUM     (3)       
 #define BUF_SIZE            (1024)
@@ -36,59 +38,56 @@
 
 static QueueHandle_t uart0_queue;
 static QueueHandle_t button_queue;
+static QueueHandle_t option_queue;
+
 TaskHandle_t TaskHandler_uart;
 
-void button_task(void *pvParameters);
+static void button_task(void *pvParameters);
 static void uart_event_task(void *pvParameters);
-bool isEqualString(char *str1, char *str2);
 static void IRAM_ATTR gpio_interrupt_handler(void *args);
-void screen_task(void *pvParameters);
+static void screen_task(void *pvParameters);
 static void SPIFFS_Directory(char * path);
-
 void Option1Display(ST7735_t * dev, FontxFile *fx, int width, int height);
 void Option2Display(ST7735_t * dev, FontxFile *fx, int width, int height);
 void Option3Display(ST7735_t * dev, FontxFile *fx, int width, int height);
 void Option4Display(ST7735_t * dev, FontxFile *fx, int width, int height);
+void GlobalConfig(void);
+void OptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int option);
+bool isEqualString(char *str1, char *str2);
 
 
 void app_main(void){
 
-    gpio_set_direction(LED, GPIO_MODE_OUTPUT);
-    gpio_set_direction(BUTTON, GPIO_MODE_INPUT);
-    gpio_pullup_dis(BUTTON);
-    gpio_pulldown_en(BUTTON);
-    gpio_set_intr_type(BUTTON, GPIO_INTR_POSEDGE);
-    //uart config 
-	uart_config_t uart_config = {
-        .baud_rate = 115200,
-        .data_bits = UART_DATA_8_BITS,
-        .parity = UART_PARITY_DISABLE,
-        .stop_bits = UART_STOP_BITS_1,
-        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-        .source_clk = UART_SCLK_DEFAULT,
-    };
-    //Install UART driver, and get the queue.
-    uart_driver_install(EX_UART_NUM, BUF_SIZE * 2, BUF_SIZE * 2, 20, &uart0_queue, 0);
-    uart_param_config(EX_UART_NUM, &uart_config);
-    //Set UART pins (using UART0 default pins ie no changes.)
-    uart_set_pin(EX_UART_NUM, 1, 3, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-    //spiff config 
-	esp_vfs_spiffs_conf_t conf = {
-		.base_path = "/spiffs",
-		.partition_label = NULL,
-		.max_files = 10,
-		.format_if_mount_failed =true
-	};
-	esp_vfs_spiffs_register(&conf);
-    button_queue = xQueueCreate(10, sizeof(int));
-
+    GlobalConfig();
     //Create tasks
 	xTaskCreate(&button_task, "Button",    4096, NULL, 2, NULL);
+	xTaskCreate(&screen_task, "TFT Screen", 4096, NULL, 2, NULL);
 	//xTaskCreate(&uart_event_task, "UART Task", 4096, NULL, 2, NULL);
     gpio_install_isr_service(0);
-    gpio_isr_handler_add(BUTTON, gpio_interrupt_handler, (void *)BUTTON);
-	xTaskCreate(&screen_task, "TFT Screen", 4096, NULL, 2, NULL);
+    gpio_isr_handler_add(BUTTON_UP, gpio_interrupt_handler, (void *)BUTTON_UP);
+    gpio_isr_handler_add(BUTTON_DOWN, gpio_interrupt_handler, (void *)BUTTON_DOWN);
+    gpio_isr_handler_add(BUTTON_ENTER, gpio_interrupt_handler, (void *)BUTTON_ENTER);
 
+}
+void OptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int option){
+    switch(option){
+        case 0:
+        case 1:
+            Option1Display(dev, fx, width, height);
+            break;
+        case 2:
+            Option2Display(dev, fx, width, height);
+            break;
+        case 3:
+            Option3Display(dev, fx, width, height);
+            break;
+        case 4:
+        case 5:
+            Option4Display(dev, fx, width, height);
+            break;
+        default:
+            break;
+    }
 }
 static void SPIFFS_Directory(char * path){
     DIR* dir = opendir(path);
@@ -101,16 +100,50 @@ static void SPIFFS_Directory(char * path){
 	closedir(dir);
 }
 void button_task(void *pvParameters){
-    int pinNumber, count=0;
+    int pinNumber;
+    bool isOn=false;
+    int option_counting = 1;
+
 	while(1){
         if(xQueueReceive(button_queue, &pinNumber, portMAX_DELAY)){
             //disable the interrupt
             gpio_isr_handler_remove(pinNumber);
-            do{
-                vTaskDelay(20/portTICK_PERIOD_MS);
-            }while(gpio_get_level(pinNumber)==1);
-            //do something
-            printf("GPIO %d was pressed %d times \n", pinNumber, count++);
+            if(gpio_get_level(pinNumber)==1 && pinNumber == BUTTON_UP){
+                vTaskDelay(100/portTICK_PERIOD_MS);
+                if(gpio_get_level(pinNumber)==1 && pinNumber == BUTTON_UP){
+                    //do something
+                    if(option_counting<=1){
+                        option_counting=1;
+                    }else{
+                        option_counting --;
+                    }
+                    xQueueSend(option_queue, &option_counting, NULL);
+                }
+            }else if(gpio_get_level(pinNumber)==1 && pinNumber == BUTTON_DOWN){
+                vTaskDelay(100/portTICK_PERIOD_MS);
+                if(gpio_get_level(pinNumber)==1 && pinNumber == BUTTON_DOWN){
+                    //do something
+                    if(option_counting>=4){
+                        option_counting=4;
+                    }else{
+                        option_counting ++;
+                    }
+                    xQueueSend(option_queue, &option_counting, NULL);
+                }
+            }else if(gpio_get_level(pinNumber)==1 && pinNumber == BUTTON_ENTER){
+                vTaskDelay(100/portTICK_PERIOD_MS);
+                if(gpio_get_level(pinNumber)==1 && pinNumber == BUTTON_ENTER){
+                    //do something
+                    if(!isOn){
+                        gpio_set_level(LED, 1);
+                        isOn=true;
+                    }else{
+                        gpio_set_level(LED, 0);
+                        isOn=false;
+                    }
+                    xQueueSend(option_queue, &option_counting, NULL);
+                }
+            }
             //enable the interrupt
             gpio_isr_handler_add(pinNumber, gpio_interrupt_handler, (void*)pinNumber); 
         }
@@ -178,8 +211,50 @@ static void IRAM_ATTR gpio_interrupt_handler(void *args)
     xQueueSendFromISR(button_queue, &pinNumber, NULL);
 }
 
+void GlobalConfig(void){
+    gpio_set_direction(LED, GPIO_MODE_OUTPUT);
+    gpio_set_direction(BUTTON_UP, GPIO_MODE_INPUT);
+    gpio_set_direction(BUTTON_DOWN, GPIO_MODE_INPUT);
+    gpio_set_direction(BUTTON_ENTER, GPIO_MODE_INPUT);
+    gpio_pullup_dis(BUTTON_UP);
+    gpio_pullup_dis(BUTTON_DOWN);
+    gpio_pullup_dis(BUTTON_ENTER);
+    gpio_pulldown_en(BUTTON_UP);
+    gpio_pulldown_en(BUTTON_DOWN);
+    gpio_pulldown_en(BUTTON_ENTER);
+    gpio_set_intr_type(BUTTON_UP, GPIO_INTR_POSEDGE);
+    gpio_set_intr_type(BUTTON_DOWN, GPIO_INTR_POSEDGE);
+    gpio_set_intr_type(BUTTON_ENTER, GPIO_INTR_POSEDGE);
+
+    //uart config 
+	uart_config_t uart_config = {
+        .baud_rate = 115200,
+        .data_bits = UART_DATA_8_BITS,
+        .parity = UART_PARITY_DISABLE,
+        .stop_bits = UART_STOP_BITS_1,
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+        .source_clk = UART_SCLK_DEFAULT,
+    };
+    //Install UART driver, and get the queue.
+    uart_driver_install(EX_UART_NUM, BUF_SIZE * 2, BUF_SIZE * 2, 20, &uart0_queue, 0);
+    uart_param_config(EX_UART_NUM, &uart_config);
+    //Set UART pins (using UART0 default pins ie no changes.)
+    uart_set_pin(EX_UART_NUM, 1, 3, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+    //spiff config 
+	esp_vfs_spiffs_conf_t conf = {
+		.base_path = "/spiffs",
+		.partition_label = NULL,
+		.max_files = 10,
+		.format_if_mount_failed =true
+	};
+	esp_vfs_spiffs_register(&conf);
+    button_queue = xQueueCreate(10, sizeof(int));
+    option_queue = xQueueCreate(10, sizeof(int));
+}
 void screen_task(void *pvParameters){
     //Set font file
+    int option_counting=1;
+
 	FontxFile fx24[2];
 	FontxFile fx16[2];
 	FontxFile fx32[2];
@@ -191,16 +266,11 @@ void screen_task(void *pvParameters){
 	lcdInit(&dev, SCREEN_WIDTH, SCREEN_HEIGHT, OFFSET_X, OFFSET_Y);
     lcdFillScreen(&dev, BLACK);
     //Show my custom
-
+    OptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting);
 	while (1) {
-        Option1Display(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
-        WAIT;
-        Option2Display(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
-        WAIT;
-        Option3Display(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
-        WAIT;
-        Option4Display(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
-        WAIT;
+        if(xQueueReceive(option_queue, &option_counting, portTICK_PERIOD_MS)){
+            OptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting);
+        }
 	}
 }
 void Option1Display(ST7735_t * dev, FontxFile *fx, int width, int height) {
