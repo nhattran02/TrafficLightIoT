@@ -1,0 +1,84 @@
+[0/1] Re-running CMake...
+-- Building ESP-IDF components for target esp32
+-- Project sdkconfig file /home/minhnhat/esp/workspace/TrafficLightIoT/sdkconfig
+Loading defaults file /home/minhnhat/esp/workspace/TrafficLightIoT/sdkconfig.defaults...
+/home/minhnhat/esp/workspace/TrafficLightIoT/sdkconfig.defaults:11 CONFIG_ESP32_DEFAULT_CPU_FREQ_240 was replaced with CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240
+/home/minhnhat/esp/workspace/TrafficLightIoT/sdkconfig.defaults:12 CONFIG_ESP32_DEFAULT_CPU_FREQ_MHZ was replaced with CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ
+-- App "m5StickC" version: f6f9848-dirty
+-- Adding linker script /home/minhnhat/esp/workspace/TrafficLightIoT/build/esp-idf/esp_system/ld/memory.ld
+-- Adding linker script /home/minhnhat/esp/esp-idf/components/esp_system/ld/esp32/sections.ld.in
+-- Adding linker script /home/minhnhat/esp/esp-idf/components/esp_rom/esp32/ld/esp32.rom.ld
+-- Adding linker script /home/minhnhat/esp/esp-idf/components/esp_rom/esp32/ld/esp32.rom.api.ld
+-- Adding linker script /home/minhnhat/esp/esp-idf/components/esp_rom/esp32/ld/esp32.rom.libgcc.ld
+-- Adding linker script /home/minhnhat/esp/esp-idf/components/esp_rom/esp32/ld/esp32.rom.newlib-data.ld
+-- Adding linker script /home/minhnhat/esp/esp-idf/components/esp_rom/esp32/ld/esp32.rom.syscalls.ld
+-- Adding linker script /home/minhnhat/esp/esp-idf/components/esp_rom/esp32/ld/esp32.rom.newlib-funcs.ld
+-- Adding linker script /home/minhnhat/esp/esp-idf/components/soc/esp32/ld/esp32.peripherals.ld
+-- Components: app_trace app_update bootloader bootloader_support bt cmock console cxx driver efuse esp-tls esp32-camera esp_adc esp_app_format esp_common esp_eth esp_event esp_gdbstub esp_hid esp_http_client esp_http_server esp_https_ota esp_https_server esp_hw_support esp_lcd esp_local_ctrl esp_mm esp_netif esp_netif_stack esp_partition esp_phy esp_pm esp_psram esp_ringbuf esp_rom esp_system esp_timer esp_wifi espcoredump esptool_py fatfs freertos hal heap http_parser idf_test ieee802154 json log lwip main mbedtls mqtt newlib nvs_flash openthread partition_table perfmon protobuf-c protocomm pthread sdmmc soc spi_flash spiffs tcp_transport ulp unity usb vfs wear_levelling wifi_provisioning wpa_supplicant xtensa
+-- Component paths: /home/minhnhat/esp/esp-idf/components/app_trace /home/minhnhat/esp/esp-idf/components/app_update /home/minhnhat/esp/esp-idf/components/bootloader /home/minhnhat/esp/esp-idf/components/bootloader_support /home/minhnhat/esp/esp-idf/components/bt /home/minhnhat/esp/esp-idf/components/cmock /home/minhnhat/esp/esp-idf/components/console /home/minhnhat/esp/esp-idf/components/cxx /home/minhnhat/esp/esp-idf/components/driver /home/minhnhat/esp/esp-idf/components/efuse /home/minhnhat/esp/esp-idf/components/esp-tls /home/minhnhat/esp/esp-idf/components/esp32-camera /home/minhnhat/esp/esp-idf/components/esp_adc /home/minhnhat/esp/esp-idf/components/esp_app_format /home/minhnhat/esp/esp-idf/components/esp_common /home/minhnhat/esp/esp-idf/components/esp_eth /home/minhnhat/esp/esp-idf/components/esp_event /home/minhnhat/esp/esp-idf/components/esp_gdbstub /home/minhnhat/esp/esp-idf/components/esp_hid /home/minhnhat/esp/esp-idf/components/esp_http_client /home/minhnhat/esp/esp-idf/components/esp_http_server /home/minhnhat/esp/esp-idf/components/esp_https_ota /home/minhnhat/esp/esp-idf/components/esp_https_server /home/minhnhat/esp/esp-idf/components/esp_hw_support /home/minhnhat/esp/esp-idf/components/esp_lcd /home/minhnhat/esp/esp-idf/components/esp_local_ctrl /home/minhnhat/esp/esp-idf/components/esp_mm /home/minhnhat/esp/esp-idf/components/esp_netif /home/minhnhat/esp/esp-idf/components/esp_netif_stack /home/minhnhat/esp/esp-idf/components/esp_partition /home/minhnhat/esp/esp-idf/components/esp_phy /home/minhnhat/esp/esp-idf/components/esp_pm /home/minhnhat/esp/esp-idf/components/esp_psram /home/minhnhat/esp/esp-idf/components/esp_ringbuf /home/minhnhat/esp/esp-idf/components/esp_rom /home/minhnhat/esp/esp-idf/components/esp_system /home/minhnhat/esp/esp-idf/components/esp_timer /home/minhnhat/esp/esp-idf/components/esp_wifi /home/minhnhat/esp/esp-idf/components/espcoredump /home/minhnhat/esp/esp-idf/components/esptool_py /home/minhnhat/esp/esp-idf/components/fatfs /home/minhnhat/esp/esp-idf/components/freertos /home/minhnhat/esp/esp-idf/components/hal /home/minhnhat/esp/esp-idf/components/heap /home/minhnhat/esp/esp-idf/components/http_parser /home/minhnhat/esp/esp-idf/components/idf_test /home/minhnhat/esp/esp-idf/components/ieee802154 /home/minhnhat/esp/esp-idf/components/json /home/minhnhat/esp/esp-idf/components/log /home/minhnhat/esp/esp-idf/components/lwip /home/minhnhat/esp/workspace/TrafficLightIoT/main /home/minhnhat/esp/esp-idf/components/mbedtls /home/minhnhat/esp/esp-idf/components/mqtt /home/minhnhat/esp/esp-idf/components/newlib /home/minhnhat/esp/esp-idf/components/nvs_flash /home/minhnhat/esp/esp-idf/components/openthread /home/minhnhat/esp/esp-idf/components/partition_table /home/minhnhat/esp/esp-idf/components/perfmon /home/minhnhat/esp/esp-idf/components/protobuf-c /home/minhnhat/esp/esp-idf/components/protocomm /home/minhnhat/esp/esp-idf/components/pthread /home/minhnhat/esp/esp-idf/components/sdmmc /home/minhnhat/esp/esp-idf/components/soc /home/minhnhat/esp/esp-idf/components/spi_flash /home/minhnhat/esp/esp-idf/components/spiffs /home/minhnhat/esp/esp-idf/components/tcp_transport /home/minhnhat/esp/esp-idf/components/ulp /home/minhnhat/esp/esp-idf/components/unity /home/minhnhat/esp/esp-idf/components/usb /home/minhnhat/esp/esp-idf/components/vfs /home/minhnhat/esp/esp-idf/components/wear_levelling /home/minhnhat/esp/esp-idf/components/wifi_provisioning /home/minhnhat/esp/esp-idf/components/wpa_supplicant /home/minhnhat/esp/esp-idf/components/xtensa
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/minhnhat/esp/workspace/TrafficLightIoT/build
+[1/10] Linking C static library esp-idf/main/libmain.a
+[2/10] Performing build step for 'bootloader'
+[1/1] cd /home/minhnhat/esp/workspace/TrafficLightIoT/build/bootloader/esp-idf/esptool_py && /home/minhnhat/.espressif/python_env/idf5.1_py3.8_env/bin/python /home/minhnhat/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x1000 /home/minhnhat/esp/workspace/TrafficLightIoT/build/bootloader/bootloader.bin
+Bootloader binary size 0x6730 bytes. 0x8d0 bytes (8%) free.
+[3/8] cd /home/minhnhat/esp/workspace/TrafficLightIoT/build && /home/minhnhat/.espressif/python_env/idf5.1_py3.8_env/bin/python /home/minhnhat/esp/esp-idf/components/spiffs/spiffsgen.py 0xf0000 /home/minhnhat/esp/workspace/TrafficLightIoT/font /home/minhnhat/esp/workspace/TrafficLightIoT/build/storage.bin --page-size=256 --obj-name-len=32 --meta-len=4 --use-magic --use-magic-len
+[4/8] Generating ld/sections.ld
+[5/8] Linking CXX executable m5StickC.elf
+[6/8] Generating binary image from built executable
+esptool.py v4.5.dev2
+Creating esp32 image...
+Merged 2 ELF sections
+Successfully created esp32 image.
+Generated /home/minhnhat/esp/workspace/TrafficLightIoT/build/m5StickC.bin
+[7/8] cd /home/minhnhat/esp/workspace/TrafficLightIoT/build/esp-idf/esptool_py && /home/minhnhat/.espressif/python_env/idf5.1_py3.8_env/bin/python /home/minhnhat/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app /home/minhnhat/esp/workspace/TrafficLightIoT/build/partition_table/partition-table.bin /home/minhnhat/esp/workspace/TrafficLightIoT/build/m5StickC.bin
+m5StickC.bin binary size 0x3cd70 bytes. Smallest app partition is 0x100000 bytes. 0xc3290 bytes (76%) free.
+[7/8] cd /home/minhnhat/esp/esp-idf/components/esptool_py && /usr/bin/cmake -D IDF_PATH=/home/minhnhat/esp/esp-idf -D "SERIAL_TOOL=/home/minhnhat/.espressif/python_env/idf5.1_py3.8_env/bin/python;;/home/minhnhat/esp/esp-idf/components/esptool_py/esptool/esptool.py;--chip;esp32" -D "SERIAL_TOOL_ARGS=--before=default_reset;--after=hard_reset;write_flash;@flash_args" -D WORKING_DIRECTORY=/home/minhnhat/esp/workspace/TrafficLightIoT/build -P /home/minhnhat/esp/esp-idf/components/esptool_py/run_serial_tool.cmake
+esptool esp32 -p /dev/ttyUSB0 -b 460800 --before=default_reset --after=hard_reset write_flash --flash_mode dio --flash_freq 40m --flash_size 2MB 0x1000 bootloader/bootloader.bin 0x10000 m5StickC.bin 0x8000 partition_table/partition-table.bin 0x110000 storage.bin
+esptool.py v4.5.dev2
+Serial port /dev/ttyUSB0
+Connecting.....
+Chip is ESP32-D0WDQ6 (revision v1.0)
+Features: WiFi, BT, Dual Core, 240MHz, VRef calibration in efuse, Coding Scheme None
+Crystal is 40MHz
+MAC: 08:3a:f2:71:9c:74
+Uploading stub...
+Running stub...
+Stub running...
+Changing baud rate to 460800
+Changed.
+Configuring flash size...
+Flash will be erased from 0x00001000 to 0x00007fff...
+Flash will be erased from 0x00010000 to 0x0004cfff...
+Flash will be erased from 0x00008000 to 0x00008fff...
+Flash will be erased from 0x00110000 to 0x001fffff...
+Compressed 26416 bytes to 16500...
+Writing at 0x00001000... (50 %)
+Writing at 0x00007696... (100 %)
+Wrote 26416 bytes (16500 compressed) at 0x00001000 in 0.7 seconds (effective 284.8 kbit/s)...
+Hash of data verified.
+Compressed 249200 bytes to 142821...
+Writing at 0x00010000... (11 %)
+Writing at 0x0001c50b... (22 %)
+Writing at 0x00023847... (33 %)
+Writing at 0x00029477... (44 %)
+Writing at 0x0002ee18... (55 %)
+Writing at 0x000345f6... (66 %)
+Writing at 0x0003bd52... (77 %)
+Writing at 0x00042bf4... (88 %)
+Writing at 0x0004879d... (100 %)
+Wrote 249200 bytes (142821 compressed) at 0x00010000 in 3.4 seconds (effective 583.4 kbit/s)...
+Hash of data verified.
+Compressed 3072 bytes to 119...
+Writing at 0x00008000... (100 %)
+Wrote 3072 bytes (119 compressed) at 0x00008000 in 0.1 seconds (effective 328.1 kbit/s)...
+Hash of data verified.
+Compressed 983040 bytes to 18709...
+Writing at 0x00110000... (50 %)
+Writing at 0x001218fb... (100 %)
+Wrote 983040 bytes (18709 compressed) at 0x00110000 in 5.6 seconds (effective 1396.3 kbit/s)...
+Hash of data verified.
+
+Leaving...
+Hard resetting via RTS pin...
