@@ -35,10 +35,13 @@
 #define GPIO_RESET          18
 #define INTERVAL            2000
 #define WAIT                vTaskDelay(INTERVAL/portTICK_PERIOD_MS)
+#define LONG_PRESS_DELAY    3000
 
 static QueueHandle_t uart0_queue;
 static QueueHandle_t button_queue;
 static QueueHandle_t option_queue;
+static QueueHandle_t option_chosen_queue;
+static QueueHandle_t long_press_queue;
 
 TaskHandle_t TaskHandler_uart;
 
@@ -46,18 +49,19 @@ static void button_task(void *pvParameters);
 static void uart_event_task(void *pvParameters);
 static void IRAM_ATTR gpio_interrupt_handler(void *args);
 static void screen_task(void *pvParameters);
-static void SPIFFS_Directory(char * path);
-void Option1Display(ST7735_t * dev, FontxFile *fx, int width, int height);
-void Option2Display(ST7735_t * dev, FontxFile *fx, int width, int height);
-void Option3Display(ST7735_t * dev, FontxFile *fx, int width, int height);
-void Option4Display(ST7735_t * dev, FontxFile *fx, int width, int height);
-void GlobalConfig(void);
-void OptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int option);
+static void Option1Display(ST7735_t * dev, FontxFile *fx, int width, int height);
+static void Option2Display(ST7735_t * dev, FontxFile *fx, int width, int height);
+static void Option3Display(ST7735_t * dev, FontxFile *fx, int width, int height);
+static void Option4Display(ST7735_t * dev, FontxFile *fx, int width, int height);
+static void SetTimeLightDisplay(ST7735_t * dev, FontxFile *fx, int width, int height);
+
+static void GlobalConfig(void);
+static void OptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int option);
 bool isEqualString(char *str1, char *str2);
 
 
-void app_main(void){
-
+void app_main(void)
+{
     GlobalConfig();
     //Create tasks
 	xTaskCreate(&button_task, "Button",    4096, NULL, 2, NULL);
@@ -69,7 +73,8 @@ void app_main(void){
     gpio_isr_handler_add(BUTTON_ENTER, gpio_interrupt_handler, (void *)BUTTON_ENTER);
 
 }
-void OptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int option){
+static void OptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int option)
+{
     switch(option){
         case 0:
         case 1:
@@ -89,21 +94,13 @@ void OptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int opti
             break;
     }
 }
-static void SPIFFS_Directory(char * path){
-    DIR* dir = opendir(path);
-	assert(dir != NULL);
-	while (true) {
-		struct dirent*pe = readdir(dir);
-		if (!pe) break;
-		//ESP_LOGI("ST7735","d_name=%s d_ino=%d d_type=%x", pe->d_name,pe->d_ino, pe->d_type);
-	}
-	closedir(dir);
-}
-void button_task(void *pvParameters){
-    int pinNumber;
-    bool isOn=false;
-    int option_counting = 1;
 
+static void button_task(void *pvParameters)
+{
+    TickType_t start_time;
+    TickType_t current_time;
+    int pinNumber;
+    int option_counting = 1;
 	while(1){
         if(xQueueReceive(button_queue, &pinNumber, portMAX_DELAY)){
             //disable the interrupt
@@ -115,7 +112,7 @@ void button_task(void *pvParameters){
                     if(option_counting<=1){
                         option_counting=1;
                     }else{
-                        option_counting --;
+                        --option_counting ;
                     }
                     xQueueSend(option_queue, &option_counting, NULL);
                 }
@@ -126,30 +123,25 @@ void button_task(void *pvParameters){
                     if(option_counting>=4){
                         option_counting=4;
                     }else{
-                        option_counting ++;
+                        ++option_counting ;
                     }
                     xQueueSend(option_queue, &option_counting, NULL);
                 }
             }else if(gpio_get_level(pinNumber)==1 && pinNumber == BUTTON_ENTER){
                 vTaskDelay(100/portTICK_PERIOD_MS);
                 if(gpio_get_level(pinNumber)==1 && pinNumber == BUTTON_ENTER){
-                    //do something
-                    if(!isOn){
-                        gpio_set_level(LED, 1);
-                        isOn=true;
-                    }else{
-                        gpio_set_level(LED, 0);
-                        isOn=false;
-                    }
-                    xQueueSend(option_queue, &option_counting, NULL);
+
+                    xQueueSend(option_chosen_queue, &option_counting, NULL);
                 }
             }
-            //enable the interrupt
+
             gpio_isr_handler_add(pinNumber, gpio_interrupt_handler, (void*)pinNumber); 
-        }
-	}
+
+	    }
+    }
 }
-bool isEqualString(char *str1, char *str2){
+bool isEqualString(char *str1, char *str2)
+{
     bool check=true;
     for(int i=0;i<strlen(str2);i++){
         if(str1[i]!=str2[i]){
@@ -211,7 +203,8 @@ static void IRAM_ATTR gpio_interrupt_handler(void *args)
     xQueueSendFromISR(button_queue, &pinNumber, NULL);
 }
 
-void GlobalConfig(void){
+static void GlobalConfig(void)
+{
     gpio_set_direction(LED, GPIO_MODE_OUTPUT);
     gpio_set_direction(BUTTON_UP, GPIO_MODE_INPUT);
     gpio_set_direction(BUTTON_DOWN, GPIO_MODE_INPUT);
@@ -248,13 +241,16 @@ void GlobalConfig(void){
 		.format_if_mount_failed =true
 	};
 	esp_vfs_spiffs_register(&conf);
-    button_queue = xQueueCreate(10, sizeof(int));
-    option_queue = xQueueCreate(10, sizeof(int));
+    button_queue = xQueueCreate(1, sizeof(int));
+    option_queue = xQueueCreate(1, sizeof(int));
+    option_chosen_queue = xQueueCreate(1, sizeof(int));
+    long_press_queue = xQueueCreate(1, sizeof(int));
 }
-void screen_task(void *pvParameters){
+static void screen_task(void *pvParameters)
+{
     //Set font file
-    int option_counting=1;
-
+    int option_counting = 1;
+    int option_chosen = 1;
 	FontxFile fx24[2];
 	FontxFile fx16[2];
 	FontxFile fx32[2];
@@ -270,10 +266,35 @@ void screen_task(void *pvParameters){
 	while (1) {
         if(xQueueReceive(option_queue, &option_counting, portTICK_PERIOD_MS)){
             OptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting);
+            //printf("Display option %d !\n", option_counting);
+
+        }else{
+            if(xQueueReceive(option_chosen_queue, &option_chosen, portTICK_PERIOD_MS)){
+                //printf("Option %d is chosen!\n", option_chosen);
+                switch(option_chosen){
+                    case 1:
+                        SetTimeLightDisplay(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
+                        lcdFillScreen(&dev, BLACK);
+                        break;
+                    case 2:
+                        lcdFillScreen(&dev, BLACK);
+                        break;
+                    case 3:
+                        lcdFillScreen(&dev, BLACK);
+                        break;
+                    case 4:      
+                        xTaskCreate(&uart_event_task, "UART Task", 4096, NULL, 2, NULL);
+                        lcdFillScreen(&dev, BLACK);
+                        break;
+                    default: 
+                        break;
+                }
+            }
         }
 	}
 }
-void Option1Display(ST7735_t * dev, FontxFile *fx, int width, int height) {
+static void Option1Display(ST7735_t * dev, FontxFile *fx, int width, int height) 
+{
     lcdSetFontDirection(dev, DIRECTION270);
     //Get font width & height
 	uint8_t buffer[FontxGlyphBufSize];
@@ -281,7 +302,6 @@ void Option1Display(ST7735_t * dev, FontxFile *fx, int width, int height) {
 	uint8_t fontHeight;
 	GetFontx(fx, 0, buffer, &fontWidth, &fontHeight);
     uint8_t ascii[30];
-
     //Effect
     strcpy((char*)ascii, "TrafficLight Control");
     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
@@ -303,7 +323,8 @@ void Option1Display(ST7735_t * dev, FontxFile *fx, int width, int height) {
     strcpy((char*)ascii, "  Terminal   ");
     lcdDrawString(dev, fx, 105, 130, ascii, WHITE);
 }
-void Option2Display(ST7735_t * dev, FontxFile *fx, int width, int height) {
+static void Option2Display(ST7735_t * dev, FontxFile *fx, int width, int height) 
+{
     lcdSetFontDirection(dev, DIRECTION270);
     //Get font width & height
 	uint8_t buffer[FontxGlyphBufSize];
@@ -334,7 +355,8 @@ void Option2Display(ST7735_t * dev, FontxFile *fx, int width, int height) {
     lcdDrawString(dev, fx, 105, 130, ascii, WHITE);
 
 }
-void Option3Display(ST7735_t * dev, FontxFile *fx, int width, int height) {
+static void Option3Display(ST7735_t * dev, FontxFile *fx, int width, int height) 
+{
     lcdSetFontDirection(dev, DIRECTION270);
     //Get font width & height
 	uint8_t buffer[FontxGlyphBufSize];
@@ -367,7 +389,8 @@ void Option3Display(ST7735_t * dev, FontxFile *fx, int width, int height) {
 }
 
 
-void Option4Display(ST7735_t * dev, FontxFile *fx, int width, int height) {
+static void Option4Display(ST7735_t * dev, FontxFile *fx, int width, int height) 
+{
     lcdSetFontDirection(dev, DIRECTION270);
     //Get font width & height
 	uint8_t buffer[FontxGlyphBufSize];
@@ -397,4 +420,19 @@ void Option4Display(ST7735_t * dev, FontxFile *fx, int width, int height) {
     strcpy((char*)ascii, "  Terminal   ");
     lcdDrawString(dev, fx, 105, 130, ascii, BLACK);
 
+}
+
+static void SetTimeLightDisplay(ST7735_t * dev, FontxFile *fx, int width, int height){
+    lcdSetFontDirection(dev, DIRECTION270);
+    //Get font width & height
+	uint8_t buffer[FontxGlyphBufSize];
+	uint8_t fontWidth;
+	uint8_t fontHeight;
+	GetFontx(fx, 0, buffer, &fontWidth, &fontHeight);
+    uint8_t ascii[30];
+    lcdFillScreen(dev, BLACK);
+    //Effect
+    strcpy((char*)ascii, "   Set TimeLight   ");
+    lcdDrawString(dev, fx, 15, 160, ascii, RED);
+    lcdDrawLine(dev, 15, 160, 15, 0, GREEN);
 }
