@@ -1,3 +1,5 @@
+/*Author: Tran Minh Nhat - 2014008*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,7 +12,7 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_system.h"
-#include "esp_vfs.h"
+//#include "esp_vfs.h"
 #include "esp_spiffs.h"
 #include "st7735s.h"
 #include "fontx.h"
@@ -51,15 +53,14 @@ static void button_task(void *pvParameters);
 static void uart_event_task(void *pvParameters);
 static void IRAM_ATTR gpio_interrupt_handler(void *args);
 static void screen_task(void *pvParameters);
-static void Option1Display(ST7735_t * dev, FontxFile *fx, int width, int height);
-static void Option2Display(ST7735_t * dev, FontxFile *fx, int width, int height);
-static void Option3Display(ST7735_t * dev, FontxFile *fx, int width, int height);
-static void Option4Display(ST7735_t * dev, FontxFile *fx, int width, int height);
-static void SetTimeLightDisplay(ST7735_t * dev, FontxFile *fx, int width, int height);
-
+static void IntroDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
+static void Option1Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
+static void Option2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
+static void Option3Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
+static void Option4Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
+static void SetTimeLightDisplay(ST7735_t * dev, FontxFile *fx, int width, int height);=
 static void GlobalConfig(void);
 static void OptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int option);
-bool isEqualString(char *str1, char *str2);
 
 
 void app_main(void)
@@ -73,7 +74,6 @@ void app_main(void)
     gpio_isr_handler_add(BUTTON_UP, gpio_interrupt_handler, (void *)BUTTON_UP);
     gpio_isr_handler_add(BUTTON_DOWN, gpio_interrupt_handler, (void *)BUTTON_DOWN);
     gpio_isr_handler_add(BUTTON_ENTER, gpio_interrupt_handler, (void *)BUTTON_ENTER);
-
 }
 static void OptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int option)
 {
@@ -102,7 +102,7 @@ static void button_task(void *pvParameters)
     TickType_t start_time = 0;
     TickType_t current_time;
     int pinNumber;
-    int option_counting = 1;
+    int option_counting = 0;
     bool is_long_press = false;
     bool is_short_press = false;
     //gpio_isr_handler_add(pinNumber, gpio_interrupt_handler, (void*)pinNumber); 
@@ -136,11 +136,12 @@ static void button_task(void *pvParameters)
                             break;
                     } 
                     is_long_press = true;
-                    is_long_press = false;
+                    is_short_press = false;
                 }else if((current_time - start_time < SHORT_PRESS_DURATION) && !is_short_press){
                     //short press detected
                     switch(pinNumber){
                         case BUTTON_UP:
+                            printf("Short press button up!\n");
                             if(option_counting<=1){
                                 option_counting=1;
                             }else{
@@ -149,6 +150,7 @@ static void button_task(void *pvParameters)
                             xQueueSend(option_queue, &option_counting, NULL);
                             break;
                         case BUTTON_DOWN:
+                            printf("Short press button down!\n");
                             if(option_counting>=4){
                                 option_counting=4;
                             }else{
@@ -157,6 +159,7 @@ static void button_task(void *pvParameters)
                             xQueueSend(option_queue, &option_counting, NULL);
                             break;
                         case BUTTON_ENTER:
+                            printf("Short press button enter!\n");
                             xQueueSend(option_chosen_queue, &option_counting, NULL);
                             break;
                         default:
@@ -165,24 +168,13 @@ static void button_task(void *pvParameters)
                     is_short_press = true;
                     is_long_press = false;
                 }
-                vTaskDelay(45/portTICK_PERIOD_MS); //debounce
+                vTaskDelay(50/portTICK_PERIOD_MS); //debounce
             }
             gpio_isr_handler_add(pinNumber, gpio_interrupt_handler, (void*)pinNumber); 
-
 	    }
     }
 }
-bool isEqualString(char *str1, char *str2)
-{
-    bool check=true;
-    for(int i=0;i<strlen(str2);i++){
-        if(str1[i]!=str2[i]){
-            check=false;
-            break;
-        }
-    }
-    return check;
-}
+
 
 static void uart_event_task(void *pvParameters)
 {
@@ -204,13 +196,13 @@ static void uart_event_task(void *pvParameters)
                 case UART_DATA:
                     uart_read_bytes(EX_UART_NUM, dtmp, event.size, portMAX_DELAY);
                     printf("%s", dtmp);
-                    if(isEqualString(dtmp, "!SETTIME!")){
+                    if(strncmp(dtmp, "!SETTIME!", strlen("!SETTIME!"))==0){
                         gpio_set_level(LED, 1);
 
-                    }else if(isEqualString(dtmp, "!ADJ!")){
+                    }else if(strncmp(dtmp, "!ADJ!", strlen("!ADJ!"))==0){
                         gpio_set_level(LED, 0);
 
-                    }else if(isEqualString(dtmp, "!SLOW!")){
+                    }else if(strncmp(dtmp, "!SLOW!", strlen("!SLOW!"))==0){
                         for(int i=0;i<5;i++){
                             gpio_set_level(LED, 1);
                             vTaskDelay(500/portTICK_PERIOD_MS);
@@ -251,25 +243,22 @@ static void GlobalConfig(void)
     gpio_set_intr_type(BUTTON_DOWN, GPIO_INTR_POSEDGE);
     gpio_set_intr_type(BUTTON_ENTER, GPIO_INTR_POSEDGE);
 
-    //uart config 
-	uart_config_t uart_config = {
+    //Install UART driver, and get the queue.
+    uart_driver_install(EX_UART_NUM, BUF_SIZE * 2, BUF_SIZE * 2, 20, &uart0_queue, 0);
+    uart_param_config(EX_UART_NUM, &(uart_config_t) {
         .baud_rate = 115200,
         .data_bits = UART_DATA_8_BITS,
         .parity = UART_PARITY_DISABLE,
         .stop_bits = UART_STOP_BITS_1,
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
         .source_clk = UART_SCLK_DEFAULT,
-    };
-    //Install UART driver, and get the queue.
-    uart_driver_install(EX_UART_NUM, BUF_SIZE * 2, BUF_SIZE * 2, 20, &uart0_queue, 0);
-    uart_param_config(EX_UART_NUM, &uart_config);
-    //Set UART pins (using UART0 default pins ie no changes.)
+    });
     uart_set_pin(EX_UART_NUM, 1, 3, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
     //spiff config 
 	esp_vfs_spiffs_conf_t conf = {
 		.base_path = "/spiffs",
 		.partition_label = NULL,
-		.max_files = 10,
+		.max_files = 5,
 		.format_if_mount_failed =true
 	};
 	esp_vfs_spiffs_register(&conf);
@@ -281,21 +270,20 @@ static void GlobalConfig(void)
 static void screen_task(void *pvParameters)
 {
     //Set font file
-    int option_counting = 1;
+    int option_counting = 0; //init 1
     int option_chosen = 1;
     int pin_number;
-	FontxFile fx24[2];
-	FontxFile fx16[2];
-	FontxFile fx32[2];
+	static FontxFile fx16[2];
 	InitFontx(fx16,"/spiffs/ILGH16XB.FNT",""); // 8x16Dot Gothic
+
+	static FontxFile fx24[2];
 	InitFontx(fx24,"/spiffs/ILGH24XB.FNT",""); // 12x24Dot Gothic
-	InitFontx(fx32,"/spiffs/ILGH32XB.FNT",""); // 16x32Dot Gothic
-	ST7735_t dev;
+
+	static ST7735_t dev;
 	spi_master_init(&dev, GPIO_MOSI, GPIO_SCLK, GPIO_CS, GPIO_DC, GPIO_RESET);
 	lcdInit(&dev, SCREEN_WIDTH, SCREEN_HEIGHT, OFFSET_X, OFFSET_Y);
-    lcdFillScreen(&dev, BLACK);
     //Show my custom
-    OptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting);
+    IntroDisplay(&dev, fx24, SCREEN_WIDTH, SCREEN_HEIGHT);
 	while (1) {
         if(xQueueReceive(option_queue, &option_counting, portTICK_PERIOD_MS)){
             OptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting);
@@ -307,6 +295,7 @@ static void screen_task(void *pvParameters)
                 switch(option_chosen){
                     case 1:
                         SetTimeLightDisplay(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
+                        // xTaskCreate(&time_display_task, "Time Display Task", 4096, NULL, 2, NULL);
                         lcdFillScreen(&dev, BLACK);
                         break;
                     case 2:
@@ -329,136 +318,158 @@ static void screen_task(void *pvParameters)
         }
 	}
 }
-static void Option1Display(ST7735_t * dev, FontxFile *fx, int width, int height) 
+
+static void IntroDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
+{
+    const uint16_t colors[] = {RED, YELLOW, GREEN};
+    const char *strings[] = {"Traffic", "Light", "Control"};
+    const uint8_t x[] = {50, 75, 100};
+    const uint8_t y[] = {155, 120, 85};
+
+    lcdSetFontDirection(dev, DIRECTION270);
+    lcdFillScreen(dev, BLACK);
+
+    for (int i = 0; i < 3; i++) {
+        lcdDrawString(dev, fx, x[i], y[i], (uint8_t*)strings[i], colors[i]);
+    }
+}
+static void Option1Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height) 
 {
     lcdSetFontDirection(dev, DIRECTION270);
-    //Get font width & height
-	uint8_t buffer[FontxGlyphBufSize];
-	uint8_t fontWidth;
-	uint8_t fontHeight;
-	GetFontx(fx, 0, buffer, &fontWidth, &fontHeight);
-    uint8_t ascii[30];
-    //Effect
+    static uint8_t ascii[30];
     strcpy((char*)ascii, "TrafficLight Control");
     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
     lcdDrawLine(dev, 15, 160, 15, 0, RED);
 
-    lcdDrawFillRect(dev, 30, 20, 30 + fontHeight, 140, CYAN);
-    strcpy((char*)ascii, "Set TimeLight");
-    lcdDrawString(dev, fx, 45, 130, ascii, BLACK);
+    const uint8_t fontHeight = getFortHeight(fx);
+    const uint8_t* const captions[] = {
+        (const uint8_t*)"Set TimeLight",
+        (const uint8_t*)"Manual Adjust",
+        (const uint8_t*)"  Slow Mode  ",
+        (const uint8_t*)"  Terminal   ",
+    };
+    const uint16_t colors[] = {BLACK, WHITE, WHITE, WHITE};
+    const uint16_t bgColors[] = {CYAN, RED, RED, RED};
+    const int offsets[] = {30, 50, 70, 90};
+    const int captionXOffsets[] = {45, 65, 85, 105};
 
-    lcdDrawFillRect(dev, 50, 20, 50 + fontHeight, 140, RED);
-    strcpy((char*)ascii, "Manual Adjust");
-    lcdDrawString(dev, fx, 65, 130, ascii, WHITE);
+    const int numCaptions = sizeof(captions) / sizeof(captions[0]);
+    for (int i = 0; i < numCaptions; ++i) {
+        const uint8_t* const caption = captions[i];
+        const uint16_t color = colors[i];
+        const uint16_t bgColor = bgColors[i];
+        const int offset = offsets[i];
+        const int captionXOffset = captionXOffsets[i];
+        lcdDrawFillRect(dev, offset, 20, offset + fontHeight, 140, bgColor);
+        lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+    }
 
-    lcdDrawFillRect(dev, 70, 20, 70 + fontHeight, 140, RED);
-    strcpy((char*)ascii, "  Slow Mode  ");
-    lcdDrawString(dev, fx, 85, 130, ascii, WHITE);
-
-    lcdDrawFillRect(dev, 90, 20, 90 + fontHeight, 140, RED);
-    strcpy((char*)ascii, "  Terminal   ");
-    lcdDrawString(dev, fx, 105, 130, ascii, WHITE);
 }
-static void Option2Display(ST7735_t * dev, FontxFile *fx, int width, int height) 
+
+
+static void Option2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height) 
 {
     lcdSetFontDirection(dev, DIRECTION270);
-    //Get font width & height
-	uint8_t buffer[FontxGlyphBufSize];
-	uint8_t fontWidth;
-	uint8_t fontHeight;
-	GetFontx(fx, 0, buffer, &fontWidth, &fontHeight);
-    uint8_t ascii[30];
-
-    //Effect
+     static uint8_t ascii[30];
     strcpy((char*)ascii, "TrafficLight Control");
     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
     lcdDrawLine(dev, 15, 160, 15, 0, RED);
 
-    lcdDrawFillRect(dev, 30, 20, 30 + fontHeight, 140, RED);
-    strcpy((char*)ascii, "Set TimeLight");
-    lcdDrawString(dev, fx, 45, 130, ascii, WHITE);
+    const uint8_t fontHeight = getFortHeight(fx);
+    const uint8_t* const captions[] = {
+        (const uint8_t*)"Set TimeLight",
+        (const uint8_t*)"Manual Adjust",
+        (const uint8_t*)"  Slow Mode  ",
+        (const uint8_t*)"  Terminal   ",
+    };
+    const uint16_t colors[] = {WHITE, BLACK, WHITE, WHITE};
+    const uint16_t bgColors[] = {RED, CYAN, RED, RED};
+    const int offsets[] = {30, 50, 70, 90};
+    const int captionXOffsets[] = {45, 65, 85, 105};
 
-    lcdDrawFillRect(dev, 50, 20, 50 + fontHeight, 140, CYAN);
-    strcpy((char*)ascii, "Manual Adjust");
-    lcdDrawString(dev, fx, 65, 130, ascii, BLACK);
+    const int numCaptions = sizeof(captions) / sizeof(captions[0]);
+    for (int i = 0; i < numCaptions; ++i) {
+        const uint8_t* const caption = captions[i];
+        const uint16_t color = colors[i];
+        const uint16_t bgColor = bgColors[i];
+        const int offset = offsets[i];
+        const int captionXOffset = captionXOffsets[i];
+        lcdDrawFillRect(dev, offset, 20, offset + fontHeight, 140, bgColor);
+        lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+    }
 
-    lcdDrawFillRect(dev, 70, 20, 70 + fontHeight, 140, RED);
-    strcpy((char*)ascii, "  Slow Mode  ");
-    lcdDrawString(dev, fx, 85, 130, ascii, WHITE);
-
-    lcdDrawFillRect(dev, 90, 20, 90 + fontHeight, 140, RED);
-    strcpy((char*)ascii, "  Terminal   ");
-    lcdDrawString(dev, fx, 105, 130, ascii, WHITE);
-
+   
 }
-static void Option3Display(ST7735_t * dev, FontxFile *fx, int width, int height) 
+
+
+static void Option3Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height) 
 {
     lcdSetFontDirection(dev, DIRECTION270);
-    //Get font width & height
-	uint8_t buffer[FontxGlyphBufSize];
-	uint8_t fontWidth;
-	uint8_t fontHeight;
-	GetFontx(fx, 0, buffer, &fontWidth, &fontHeight);
-    uint8_t ascii[30];
-
-    //Effect
+    static uint8_t ascii[30];
     strcpy((char*)ascii, "TrafficLight Control");
     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
     lcdDrawLine(dev, 15, 160, 15, 0, RED);
 
-    lcdDrawFillRect(dev, 30, 20, 30 + fontHeight, 140, RED);
-    strcpy((char*)ascii, "Set TimeLight");
-    lcdDrawString(dev, fx, 45, 130, ascii, WHITE);
+    const uint8_t fontHeight = getFortHeight(fx);
+    const uint8_t* const captions[] = {
+        (const uint8_t*)"Set TimeLight",
+        (const uint8_t*)"Manual Adjust",
+        (const uint8_t*)"  Slow Mode  ",
+        (const uint8_t*)"  Terminal   ",
+    };
+    const uint16_t colors[] = {WHITE, WHITE, BLACK, WHITE};
+    const uint16_t bgColors[] = {RED, RED, CYAN, RED};
+    const int offsets[] = {30, 50, 70, 90};
+    const int captionXOffsets[] = {45, 65, 85, 105};
 
-    lcdDrawFillRect(dev, 50, 20, 50 + fontHeight, 140, RED);
-    strcpy((char*)ascii, "Manual Adjust");
-    lcdDrawString(dev, fx, 65, 130, ascii, WHITE);
-
-    lcdDrawFillRect(dev, 70, 20, 70 + fontHeight, 140, CYAN);
-    strcpy((char*)ascii, "  Slow Mode  ");
-    lcdDrawString(dev, fx, 85, 130, ascii, BLACK);
-
-    lcdDrawFillRect(dev, 90, 20, 90 + fontHeight, 140, RED);
-    strcpy((char*)ascii, "  Terminal   ");
-    lcdDrawString(dev, fx, 105, 130, ascii, WHITE);
+    const int numCaptions = sizeof(captions) / sizeof(captions[0]);
+    for (int i = 0; i < numCaptions; ++i) {
+        const uint8_t* const caption = captions[i];
+        const uint16_t color = colors[i];
+        const uint16_t bgColor = bgColors[i];
+        const int offset = offsets[i];
+        const int captionXOffset = captionXOffsets[i];
+        lcdDrawFillRect(dev, offset, 20, offset + fontHeight, 140, bgColor);
+        lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+    }
 
 }
 
-
-static void Option4Display(ST7735_t * dev, FontxFile *fx, int width, int height) 
+static void Option4Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height) 
 {
     lcdSetFontDirection(dev, DIRECTION270);
-    //Get font width & height
-	uint8_t buffer[FontxGlyphBufSize];
-	uint8_t fontWidth;
-	uint8_t fontHeight;
-	GetFontx(fx, 0, buffer, &fontWidth, &fontHeight);
-    uint8_t ascii[30];
-
-    //Effect
+    static uint8_t ascii[30];
     strcpy((char*)ascii, "TrafficLight Control");
     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
     lcdDrawLine(dev, 15, 160, 15, 0, RED);
 
-    lcdDrawFillRect(dev, 30, 20, 30 + fontHeight, 140, RED);
-    strcpy((char*)ascii, "Set TimeLight");
-    lcdDrawString(dev, fx, 45, 130, ascii, WHITE);
+    const uint8_t fontHeight = getFortHeight(fx);
+    const uint8_t* const captions[] = {
+        (const uint8_t*)"Set TimeLight",
+        (const uint8_t*)"Manual Adjust",
+        (const uint8_t*)"  Slow Mode  ",
+        (const uint8_t*)"  Terminal   ",
+    };
+    const uint16_t colors[] = {WHITE, WHITE, WHITE, BLACK};
+    const uint16_t bgColors[] = {RED, RED, RED, CYAN};
+    const int offsets[] = {30, 50, 70, 90};
+    const int captionXOffsets[] = {45, 65, 85, 105};
 
-    lcdDrawFillRect(dev, 50, 20, 50 + fontHeight, 140, RED);
-    strcpy((char*)ascii, "Manual Adjust");
-    lcdDrawString(dev, fx, 65, 130, ascii, WHITE);
-
-    lcdDrawFillRect(dev, 70, 20, 70 + fontHeight, 140, RED);
-    strcpy((char*)ascii, "  Slow Mode  ");
-    lcdDrawString(dev, fx, 85, 130, ascii, WHITE);
-
-    lcdDrawFillRect(dev, 90, 20, 90 + fontHeight, 140, CYAN);
-    strcpy((char*)ascii, "  Terminal   ");
-    lcdDrawString(dev, fx, 105, 130, ascii, BLACK);
+    const int numCaptions = sizeof(captions) / sizeof(captions[0]);
+    for (int i = 0; i < numCaptions; ++i) {
+        const uint8_t* const caption = captions[i];
+        const uint16_t color = colors[i];
+        const uint16_t bgColor = bgColors[i];
+        const int offset = offsets[i];
+        const int captionXOffset = captionXOffsets[i];
+        lcdDrawFillRect(dev, offset, 20, offset + fontHeight, 140, bgColor);
+        lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+    }
 
 }
 
-static void SetTimeLightDisplay(ST7735_t * dev, FontxFile *fx, int width, int height){
+static void SetTimeLightDisplay(ST7735_t * dev, FontxFile *fx, int width, int height)
+{
     lcdSetFontDirection(dev, DIRECTION270);
     //Get font width & height
 	uint8_t buffer[FontxGlyphBufSize];
