@@ -60,6 +60,8 @@ static void Option4Display(ST7735_t * const dev, const FontxFile * const fx, con
 static void SetTimeLightDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void GlobalConfig(void);
 static void OptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int option);
+static void DisableButtonInterrupt();
+static void EnsableButtonInterrupt();
 
 void app_main(void)
 {
@@ -285,6 +287,9 @@ static void screen_task(void *pvParameters)
     //Show my custom
     IntroDisplay(&dev, fx24, SCREEN_WIDTH, SCREEN_HEIGHT);
     OptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting);
+    //for test:
+    //SetTimeLightDisplay(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
+
 	while (1) {
         if(xQueueReceive(option_queue, &option_counting, portTICK_PERIOD_MS)){
             OptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting);
@@ -323,6 +328,7 @@ static void screen_task(void *pvParameters)
 
 static void IntroDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
 {
+    DisableButtonInterrupt();
     const uint16_t colors[] = {WHITE, WHITE, WHITE};
     const char *strings[] = {"Traffic", "Light", "Control"};
     const uint8_t x[] = {50, 75, 100};
@@ -339,9 +345,10 @@ static void IntroDisplay(ST7735_t * const dev, const FontxFile * const fx, const
     const char *str[] = {"Start in: 3", "Start in: 2", "Start in: 1"};
     for(int i = 0; i < 3 ; i++){
         lcdDrawString(dev, fx, 70, 150, (uint8_t*)str[i], colors[i]);
-        vTaskDelay(1000/portTICK_PERIOD_MS);    
+        vTaskDelay(500/portTICK_PERIOD_MS);    
         lcdFillScreen(dev, BLACK);
     }
+    EnsableButtonInterrupt();
 }
 static void Option1Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height) 
 {
@@ -479,7 +486,42 @@ static void SetTimeLightDisplay(ST7735_t * const dev, const FontxFile * const fx
     lcdSetFontDirection(dev, DIRECTION270);
     lcdFillScreen(dev, BLACK);
     static uint8_t ascii[30];
-    strcpy((char*)ascii, "   Set TimeLight   ");
+    strcpy((char*)ascii, "    Set TimeLight   ");
     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
-    lcdDrawLine(dev, 15, 160, 15, 0, WHITE);
+    lcdDrawLine(dev, 15, 160, 15, 0, WHITE);    
+    strcpy((char*)ascii, "Phase 1:");
+    lcdDrawString(dev, fx, 40, 160, ascii, WHITE);
+    strcpy((char*)ascii, "G1:");
+    lcdDrawString(dev, fx, 60, 140, ascii, GREEN);
+    strcpy((char*)ascii, "999");
+    lcdDrawString(dev, fx, 60, 116, ascii, GREEN);
+
+    strcpy((char*)ascii, "Y1:");
+    lcdDrawString(dev, fx, 60, 60, ascii, YELLOW);
+    strcpy((char*)ascii, "999");
+    lcdDrawString(dev, fx, 60, 36, ascii, YELLOW);
+
+    strcpy((char*)ascii, "Phase 2:");
+    lcdDrawString(dev, fx, 85, 160, ascii, WHITE);
+    strcpy((char*)ascii, "G2:");
+    lcdDrawString(dev, fx, 110, 140, ascii, GREEN);
+    strcpy((char*)ascii, "999");
+    lcdDrawString(dev, fx, 110, 116, ascii, GREEN);
+
+    strcpy((char*)ascii, "Y2:");
+    lcdDrawString(dev, fx, 110, 60, ascii, YELLOW);
+    strcpy((char*)ascii, "999");
+    lcdDrawString(dev, fx, 110, 36, ascii, YELLOW);
+}
+static void DisableButtonInterrupt()
+{
+    gpio_isr_handler_remove(BUTTON_UP);
+    gpio_isr_handler_remove(BUTTON_DOWN);
+    gpio_isr_handler_remove(BUTTON_ENTER);
+}
+static void EnsableButtonInterrupt()
+{
+    gpio_isr_handler_add(BUTTON_UP, gpio_interrupt_handler, (void*)BUTTON_UP); 
+    gpio_isr_handler_add(BUTTON_DOWN, gpio_interrupt_handler, (void*)BUTTON_DOWN); 
+    gpio_isr_handler_add(BUTTON_ENTER, gpio_interrupt_handler, (void*)BUTTON_ENTER); 
 }
