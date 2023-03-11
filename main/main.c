@@ -58,7 +58,7 @@ static void Option1Display(ST7735_t * const dev, const FontxFile * const fx, con
 static void Option2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void Option3Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void Option4Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
-static void SetTimeLightDisplay(ST7735_t * dev, FontxFile *fx, int width, int height);=
+static void SetTimeLightDisplay(ST7735_t * dev, FontxFile *fx, int width, int height);
 static void GlobalConfig(void);
 static void OptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int option);
 
@@ -75,6 +75,7 @@ void app_main(void)
     gpio_isr_handler_add(BUTTON_DOWN, gpio_interrupt_handler, (void *)BUTTON_DOWN);
     gpio_isr_handler_add(BUTTON_ENTER, gpio_interrupt_handler, (void *)BUTTON_ENTER);
 }
+
 static void OptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int option)
 {
     switch(option){
@@ -267,6 +268,7 @@ static void GlobalConfig(void)
     option_chosen_queue = xQueueCreate(1, sizeof(int));
     long_press_queue = xQueueCreate(1, sizeof(int));
 }
+
 static void screen_task(void *pvParameters)
 {
     //Set font file
@@ -397,10 +399,7 @@ static void Option2Display(ST7735_t * const dev, const FontxFile * const fx, con
         lcdDrawFillRect(dev, offset, 20, offset + fontHeight, 140, bgColor);
         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
     }
-
-   
 }
-
 
 static void Option3Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height) 
 {
@@ -432,7 +431,6 @@ static void Option3Display(ST7735_t * const dev, const FontxFile * const fx, con
         lcdDrawFillRect(dev, offset, 20, offset + fontHeight, 140, bgColor);
         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
     }
-
 }
 
 static void Option4Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height) 
@@ -465,7 +463,6 @@ static void Option4Display(ST7735_t * const dev, const FontxFile * const fx, con
         lcdDrawFillRect(dev, offset, 20, offset + fontHeight, 140, bgColor);
         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
     }
-
 }
 
 static void SetTimeLightDisplay(ST7735_t * dev, FontxFile *fx, int width, int height)
