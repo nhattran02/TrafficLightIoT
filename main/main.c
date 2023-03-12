@@ -36,9 +36,9 @@
 #define GPIO_RESET              18
 #define INTERVAL                2000    
 #define WAIT                    vTaskDelay(INTERVAL/portTICK_PERIOD_MS)
-#define LONG_PRESS_DURATION     2000/portTICK_PERIOD_MS
-#define SHORT_PRESS_DURATION    200/portTICK_PERIOD_MS
-
+// #define LONG_PRESS_DURATION     2000/portTICK_PERIOD_MS
+// #define SHORT_PRESS_DURATION    200/portTICK_PERIOD_MS
+#define DEBOUNCE                80
 
 static QueueHandle_t uart0_queue;
 static QueueHandle_t button_queue;
@@ -47,12 +47,18 @@ static QueueHandle_t option_chosen_queue;
 static QueueHandle_t long_press_queue;
 
 TaskHandle_t TaskHandler_uart;
-int G1=3, Y1=4, G2=5, Y2=6;
+int G1=345, Y1=444, G2=555, Y2=666;
 char G1_str[3], Y1_str[3], G2_str[3], Y2_str[3];
+typedef enum {
+    G1_CHOSEN=0,
+    Y1_CHOSEN,
+    G2_CHOSEN,
+    Y2_CHOSEN,
+}time_light_chosen_t;
 
-static void button_task(void *pvParameters);
+time_light_chosen_t time_light_chosen = G1_CHOSEN; 
+
 static void uart_event_task(void *pvParameters);
-static void IRAM_ATTR gpio_interrupt_handler(void *args);
 static void screen_task(void *pvParameters);
 static void IntroDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void Option1Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
@@ -62,26 +68,19 @@ static void Option4Display(ST7735_t * const dev, const FontxFile * const fx, con
 static void SetTimeLightDisplayG1(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void GlobalConfig(void);
 static void OptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int option);
-static void DisableButtonInterrupt();
-static void EnsableButtonInterrupt();
+static int DetectButton();
 
 void app_main(void)
 {
     GlobalConfig();
-    //Create tasks
-	xTaskCreate(&button_task, "Button",    4096, NULL, 2, NULL);
+	// xTaskCreate(&button_task, "Button",    4096, NULL, 2, NULL);
 	xTaskCreate(&screen_task, "TFT Screen", 4096, NULL, 2, NULL);
 	//xTaskCreate(&uart_event_task, "UART Task", 4096, NULL, 2, NULL);
-    gpio_install_isr_service(0);
-    gpio_isr_handler_add(BUTTON_UP, gpio_interrupt_handler, (void *)BUTTON_UP);
-    gpio_isr_handler_add(BUTTON_DOWN, gpio_interrupt_handler, (void *)BUTTON_DOWN);
-    gpio_isr_handler_add(BUTTON_ENTER, gpio_interrupt_handler, (void *)BUTTON_ENTER);
 }
 
 static void OptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int option)
 {
     switch(option){
-        //case 0:
         case 1:
             Option1Display(dev, fx, width, height);
             break;
@@ -92,7 +91,6 @@ static void OptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, i
             Option3Display(dev, fx, width, height);
             break;
         case 4:
-        //case 5:
             Option4Display(dev, fx, width, height);
             break;
         default:
@@ -100,83 +98,82 @@ static void OptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, i
     }
 }
 
-static void button_task(void *pvParameters)
-{
-    TickType_t start_time = 0;
-    TickType_t current_time;
-    int pinNumber;
-    int option_counting = 1;
-    bool is_long_press = false;
-    bool is_short_press = false;
-    //gpio_isr_handler_add(pinNumber, gpio_interrupt_handler, (void*)pinNumber); 
-	while(1){
-        if(xQueueReceive(button_queue, &pinNumber, portMAX_DELAY)){
-            //disable the interrupt
-            gpio_isr_handler_remove(pinNumber);
-            if(gpio_get_level(pinNumber)==1){
-                start_time = xTaskGetTickCount();
-                is_long_press = false;
-                is_short_press = false;
-            }
-            while(gpio_get_level(pinNumber)==1){
-                current_time = xTaskGetTickCount();
-                if((current_time - start_time > LONG_PRESS_DURATION) && !is_long_press){
-                    //long press detected
-                    switch(pinNumber){
-                        case BUTTON_UP:
-                            printf("Long press button up!\n");
+// static void button_task(void *pvParameters)
+// {
+//     TickType_t start_time = 0;
+//     TickType_t current_time;
+//     int pinNumber;
+//     int option_counting = 1;
+//     int option_chosen = 1;
+//     bool is_long_press = false;
+//     bool is_short_press = false;
+//     //gpio_isr_handler_add(pinNumber, gpio_interrupt_handler, (void*)pinNumber); 
+// 	while(1){
+//         if(xQueueReceive(button_queue, &pinNumber, portMAX_DELAY)){
+//             //disable the interrupt
+//             // gpio_isr_handler_remove(pinNumber);
+//             if(gpio_get_level(pinNumber)==1){
+//                 start_time = xTaskGetTickCount();
+//                 is_long_press = false;
+//                 is_short_press = false;
+//             }
+//             while(gpio_get_level(pinNumber)==1){
+//                 current_time = xTaskGetTickCount();
+//                 if((current_time - start_time > LONG_PRESS_DURATION) && !is_long_press){
+//                     //long press detected
+//                     switch(pinNumber){
+//                         case BUTTON_UP:
+//                             printf("Long press button up!\n");
 
-                            break;
-                        case BUTTON_DOWN:
-                            printf("Long press button down!\n");
+//                             break;
+//                         case BUTTON_DOWN:
+//                             printf("Long press button down!\n");
 
-                            break;
-                        case BUTTON_ENTER:
-                            printf("Long press button enter!\n");
-                            xQueueSend(long_press_queue, &pinNumber, NULL);
-                            break;
-                        default:
-                            break;
-                    } 
-                    is_long_press = true;
-                    is_short_press = false;
-                }else if((current_time - start_time < SHORT_PRESS_DURATION) && !is_short_press){
-                    //short press detected
-                    switch(pinNumber){
-                        case BUTTON_UP:
-                            printf("Short press button up!\n");
-                            if(option_counting<=1){
-                                option_counting=1;
-                            }else{
-                                --option_counting ;
-                            }
-                            xQueueSend(option_queue, &option_counting, NULL);
-                            break;
-                        case BUTTON_DOWN:
-                            printf("Short press button down!\n");
-                            if(option_counting>=4){
-                                option_counting=4;
-                            }else{
-                                ++option_counting ;
-                            }
-                            xQueueSend(option_queue, &option_counting, NULL);
-                            break;
-                        case BUTTON_ENTER:
-                            printf("Short press button enter!\n");
-                            xQueueSend(option_chosen_queue, &option_counting, NULL);
-                            break;
-                        default:
-                            break;
-                    }
-                    is_short_press = true;
-                    is_long_press = false;
-                }
-                vTaskDelay(50/portTICK_PERIOD_MS); //debounce
-            }
-            gpio_isr_handler_add(pinNumber, gpio_interrupt_handler, (void*)pinNumber); 
-	    }
-    }
-}
+//                             break;
+//                         case BUTTON_ENTER:
+//                             printf("Long press button enter!\n");
+//                             xQueueSend(long_press_queue, &pinNumber, NULL);
+//                             break;
+//                         default:
+//                             break;
+//                     } 
+//                     is_long_press = true;
+//                     is_short_press = false;
+//                 }else if((current_time - start_time < SHORT_PRESS_DURATION) && !is_short_press){
+//                     switch(pinNumber){
+//                         case BUTTON_UP:
+//                             printf("Short press button up!\n");
+//                             if(option_counting<=1){
+//                                 option_counting=1;
+//                             }else{
+//                                 --option_counting ;
+//                             }
+//                             xQueueSend(option_queue, &option_counting, NULL);
+//                             break;
+//                         case BUTTON_DOWN:
+//                             printf("Short press button down!\n");
+//                             if(option_counting>=4){
+//                                 option_counting=4;
+//                             }else{
+//                                 ++option_counting ;
+//                             }
+//                             xQueueSend(option_queue, &option_counting, NULL);
+//                             break;
+//                         case BUTTON_ENTER:
+//                             printf("Short press button enter!\n");
+//                             xQueueSend(option_chosen_queue, &option_chosen, NULL);
+//                             break;
+//                         default:
+//                             break;
+//                     }
+//                     is_short_press = true;
+//                     is_long_press = false;
+//                 }
+//                 vTaskDelay(50/portTICK_PERIOD_MS); //debounce
+//             }
+// 	    }
+//     }
+// }
 
 
 static void uart_event_task(void *pvParameters)
@@ -224,12 +221,6 @@ static void uart_event_task(void *pvParameters)
     vTaskDelete(NULL);
 }
 
-static void IRAM_ATTR gpio_interrupt_handler(void *args)
-{
-    int pinNumber = (int)args;
-    xQueueSendFromISR(button_queue, &pinNumber, NULL);
-}
-
 static void GlobalConfig(void)
 {
     gpio_set_direction(LED, GPIO_MODE_OUTPUT);
@@ -242,9 +233,6 @@ static void GlobalConfig(void)
     gpio_pulldown_en(BUTTON_UP);
     gpio_pulldown_en(BUTTON_DOWN);
     gpio_pulldown_en(BUTTON_ENTER);
-    gpio_set_intr_type(BUTTON_UP, GPIO_INTR_POSEDGE);
-    gpio_set_intr_type(BUTTON_DOWN, GPIO_INTR_POSEDGE);
-    gpio_set_intr_type(BUTTON_ENTER, GPIO_INTR_POSEDGE);
 
     //Install UART driver, and get the queue.
     uart_driver_install(EX_UART_NUM, BUF_SIZE * 2, BUF_SIZE * 2, 20, &uart0_queue, 0);
@@ -273,66 +261,84 @@ static void GlobalConfig(void)
 
 static void screen_task(void *pvParameters)
 {
-    //Set font file
-    int option_counting = 1; //init 1
-    int option_chosen = 1;
-    int pin_number;
+    int option_counting = 1; 
+    bool exit_loop = false;
 	static FontxFile fx16[2];
 	InitFontx(fx16,"/spiffs/ILGH16XB.FNT",""); // 8x16Dot Gothic
-
 	static FontxFile fx24[2];
 	InitFontx(fx24,"/spiffs/ILGH24XB.FNT",""); // 12x24Dot Gothic
 
 	static ST7735_t dev;
 	spi_master_init(&dev, GPIO_MOSI, GPIO_SCLK, GPIO_CS, GPIO_DC, GPIO_RESET);
 	lcdInit(&dev, SCREEN_WIDTH, SCREEN_HEIGHT, OFFSET_X, OFFSET_Y);
-    //Show my custom
     IntroDisplay(&dev, fx24, SCREEN_WIDTH, SCREEN_HEIGHT);
+    
     OptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting);
-    //for test:
-    // SetTimeLightDisplay(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
-
 	while (1) {
-        if(xQueueReceive(option_queue, &option_counting, portTICK_PERIOD_MS)){
-            OptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting);
-            //printf("Display option %d !\n", option_counting);
-
-        }else{
-            if(xQueueReceive(option_chosen_queue, &option_chosen, portTICK_PERIOD_MS)){
-                //printf("Option %d is chosen!\n", option_chosen);
-                switch(option_chosen){
-                    case 1:
-                        SetTimeLightDisplayG1(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
-                        while (1) {
-
-                        }
-                        
-                        lcdFillScreen(&dev, BLACK);
-                        break;
-                    case 2:
-                        lcdFillScreen(&dev, BLACK);
-                        break;
-                    case 3:
-                        lcdFillScreen(&dev, BLACK);
-                        break;
-                    case 4:      
-                        xTaskCreate(&uart_event_task, "UART Task", 4096, NULL, 2, NULL);
-                        while(!xQueueReceive(long_press_queue, &pin_number, portTICK_PERIOD_MS)){
-                            SetTimeLightDisplayG1(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
-                        }
-                        lcdFillScreen(&dev, BLACK);
-                        break;
-                    default: 
-                        break;
-                }
+        if(DetectButton(BUTTON_DOWN)){
+            if(option_counting>=4){
+                option_counting=4;
+            }else{
+                ++option_counting ;
             }
+            OptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting);
+        }else if(DetectButton(BUTTON_UP)){
+            if(option_counting<=1){
+                option_counting=1;
+            }else{
+                --option_counting ;
+            }
+            OptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting);
+        }else if(DetectButton(BUTTON_ENTER)){
+            switch (option_counting){
+            case 1:
+                exit_loop = false;
+                while(!exit_loop){
+                    SetTimeLightDisplayG1(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT); 
+                    while(!DetectButton(BUTTON_ENTER));
+                    switch (time_light_chosen){
+                        case G1_CHOSEN:
+                            time_light_chosen = Y1_CHOSEN;
+                            break;
+                        case Y1_CHOSEN:
+                            time_light_chosen = G2_CHOSEN;
+                            break;
+                        case G2_CHOSEN:
+                            time_light_chosen = Y2_CHOSEN;
+                            break;
+                        case Y2_CHOSEN:
+                            time_light_chosen = G1_CHOSEN;
+                            //saving data
+                            lcdFillScreen(&dev, BLACK);
+                            exit_loop = true;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                break;
+            case 2:
+                //handler 
+                lcdFillScreen(&dev, BLACK);
+                break;
+            case 3:
+                //handler
+                lcdFillScreen(&dev, BLACK);
+                break;
+            case 4:
+                //handler
+                lcdFillScreen(&dev, BLACK);
+                break;
+            default:
+                break;
+            }
+            OptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting);
         }
 	}
 }
 
 static void IntroDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
 {
-    DisableButtonInterrupt();
     const uint16_t colors[] = {WHITE, WHITE, WHITE};
     const char *strings[] = {"Traffic", "Light", "Control"};
     const uint8_t x[] = {50, 75, 100};
@@ -352,7 +358,6 @@ static void IntroDisplay(ST7735_t * const dev, const FontxFile * const fx, const
         vTaskDelay(500/portTICK_PERIOD_MS);    
         lcdFillScreen(dev, BLACK);
     }
-    EnsableButtonInterrupt();
 }
 static void Option1Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height) 
 {
@@ -386,7 +391,6 @@ static void Option1Display(ST7735_t * const dev, const FontxFile * const fx, con
     }
 
 }
-
 
 static void Option2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height) 
 {
@@ -486,53 +490,133 @@ static void Option4Display(ST7735_t * const dev, const FontxFile * const fx, con
 
 static void SetTimeLightDisplayG1(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
 {
-
-
+    static uint8_t ascii[30];
     lcdSetFontDirection(dev, DIRECTION270);
     lcdFillScreen(dev, BLACK);
-    static uint8_t ascii[30];
     itoa(G1, G1_str, 10); //int to string
     itoa(Y1, Y1_str, 10); //int to string
     itoa(G2, G2_str, 10); //int to string
     itoa(Y2, Y2_str, 10); //int to string
 
-
     strcpy((char*)ascii, "    Set TimeLight   ");
     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
-    lcdDrawLine(dev, 15, 160, 15, 0, WHITE);    
-    strcpy((char*)ascii, "Phase 1:");
-    lcdDrawString(dev, fx, 40, 160, ascii, WHITE);
-    strcpy((char*)ascii, "G1:");
-    lcdDrawString(dev, fx, 60, 140, ascii, GREEN);
-    strcpy((char*)ascii, "0");
-    lcdDrawString(dev, fx, 60, 116, ascii, GREEN);
+    lcdDrawLine(dev, 15, 160, 15, 0, WHITE); 
+    switch (time_light_chosen){
+    case G1_CHOSEN:
+        strcpy((char*)ascii, "Phase 1:");
+        lcdDrawFillRect(dev, 45, 90, 61, 145, WHITE);
+        lcdDrawString(dev, fx, 40, 160, ascii, WHITE);
+        strcpy((char*)ascii, "G1:");
+        lcdDrawString(dev, fx, 60, 140, ascii, BLACK);
+        strcpy((char*)ascii, G1_str);
+        lcdDrawString(dev, fx, 60, 116, ascii, BLACK);
 
-    strcpy((char*)ascii, "Y1:");
-    lcdDrawString(dev, fx, 60, 60, ascii, YELLOW);
-    strcpy((char*)ascii, Y1_str);
-    lcdDrawString(dev, fx, 60, 36, ascii, YELLOW);
+        strcpy((char*)ascii, "Y1:");
+        lcdDrawString(dev, fx, 60, 60, ascii, YELLOW);
+        strcpy((char*)ascii, Y1_str);
+        lcdDrawString(dev, fx, 60, 36, ascii, YELLOW);
 
-    strcpy((char*)ascii, "Phase 2:");
-    lcdDrawString(dev, fx, 85, 160, ascii, WHITE);
-    strcpy((char*)ascii, "G2:");
-    lcdDrawString(dev, fx, 110, 140, ascii, GREEN);
-    strcpy((char*)ascii, G2_str);
-    lcdDrawString(dev, fx, 110, 116, ascii, GREEN);
+        strcpy((char*)ascii, "Phase 2:");
+        lcdDrawString(dev, fx, 85, 160, ascii, WHITE);
+        strcpy((char*)ascii, "G2:");
+        lcdDrawString(dev, fx, 110, 140, ascii, GREEN);
+        strcpy((char*)ascii, G2_str);
+        lcdDrawString(dev, fx, 110, 116, ascii, GREEN);
 
-    strcpy((char*)ascii, "Y2:");
-    lcdDrawString(dev, fx, 110, 60, ascii, YELLOW);
-    strcpy((char*)ascii, Y2_str);
-    lcdDrawString(dev, fx, 110, 36, ascii, YELLOW);
+        strcpy((char*)ascii, "Y2:");
+        lcdDrawString(dev, fx, 110, 60, ascii, YELLOW);
+        strcpy((char*)ascii, Y2_str);
+        lcdDrawString(dev, fx, 110, 36, ascii, YELLOW);
+        break;
+    case Y1_CHOSEN:  
+        strcpy((char*)ascii, "Phase 1:");
+        lcdDrawString(dev, fx, 40, 160, ascii, WHITE);
+        strcpy((char*)ascii, "G1:");
+        lcdDrawString(dev, fx, 60, 140, ascii, GREEN);
+        strcpy((char*)ascii, G1_str);
+        lcdDrawString(dev, fx, 60, 116, ascii, GREEN);
+
+        lcdDrawFillRect(dev, 45, 10, 61, 65, WHITE); 
+        strcpy((char*)ascii, "Y1:");
+        lcdDrawString(dev, fx, 60, 60, ascii, BLACK);
+        strcpy((char*)ascii, Y1_str);
+        lcdDrawString(dev, fx, 60, 36, ascii, BLACK);
+
+        strcpy((char*)ascii, "Phase 2:");
+        lcdDrawString(dev, fx, 85, 160, ascii, WHITE);
+        strcpy((char*)ascii, "G2:");
+        lcdDrawString(dev, fx, 110, 140, ascii, GREEN);
+        strcpy((char*)ascii, G2_str);
+        lcdDrawString(dev, fx, 110, 116, ascii, GREEN);
+
+        strcpy((char*)ascii, "Y2:");
+        lcdDrawString(dev, fx, 110, 60, ascii, YELLOW);
+        strcpy((char*)ascii, Y2_str);
+        lcdDrawString(dev, fx, 110, 36, ascii, YELLOW);
+        break;
+    case G2_CHOSEN:   
+        strcpy((char*)ascii, "Phase 1:");
+        lcdDrawString(dev, fx, 40, 160, ascii, WHITE);
+        strcpy((char*)ascii, "G1:");
+        lcdDrawString(dev, fx, 60, 140, ascii, GREEN);
+        strcpy((char*)ascii, G1_str);
+        lcdDrawString(dev, fx, 60, 116, ascii, GREEN);
+
+        strcpy((char*)ascii, "Y1:");
+        lcdDrawString(dev, fx, 60, 60, ascii, YELLOW);
+        strcpy((char*)ascii, Y1_str);
+        lcdDrawString(dev, fx, 60, 36, ascii, YELLOW);
+
+        strcpy((char*)ascii, "Phase 2:");
+        lcdDrawString(dev, fx, 85, 160, ascii, WHITE);
+        lcdDrawFillRect(dev, 93, 90, 109, 145, WHITE); 
+        strcpy((char*)ascii, "G2:");
+        lcdDrawString(dev, fx, 110, 140, ascii, BLACK);
+        strcpy((char*)ascii, G2_str);
+        lcdDrawString(dev, fx, 110, 116, ascii, BLACK);
+
+        strcpy((char*)ascii, "Y2:");
+        lcdDrawString(dev, fx, 110, 60, ascii, YELLOW);
+        strcpy((char*)ascii, Y2_str);
+        lcdDrawString(dev, fx, 110, 36, ascii, YELLOW);
+        break;
+    case Y2_CHOSEN:  
+        strcpy((char*)ascii, "Phase 1:");
+        lcdDrawString(dev, fx, 40, 160, ascii, WHITE);
+        strcpy((char*)ascii, "G1:");
+        lcdDrawString(dev, fx, 60, 140, ascii, GREEN);
+        strcpy((char*)ascii, G1_str);
+        lcdDrawString(dev, fx, 60, 116, ascii, GREEN);
+
+        strcpy((char*)ascii, "Y1:");
+        lcdDrawString(dev, fx, 60, 60, ascii, YELLOW);
+        strcpy((char*)ascii, Y1_str);
+        lcdDrawString(dev, fx, 60, 36, ascii, YELLOW);
+
+        strcpy((char*)ascii, "Phase 2:");
+        lcdDrawString(dev, fx, 85, 160, ascii, WHITE);
+        strcpy((char*)ascii, "G2:");
+        lcdDrawString(dev, fx, 110, 140, ascii, GREEN);
+        strcpy((char*)ascii, G2_str);
+        lcdDrawString(dev, fx, 110, 116, ascii, GREEN);
+
+        lcdDrawFillRect(dev, 93, 10, 109, 65, WHITE); 
+        strcpy((char*)ascii, "Y2:");
+        lcdDrawString(dev, fx, 110, 60, ascii, BLACK);
+        strcpy((char*)ascii, Y2_str);
+        lcdDrawString(dev, fx, 110, 36, ascii, BLACK);
+        break;
+    default:
+        break;
+    }
 }
-static void DisableButtonInterrupt()
+static int DetectButton(gpio_num_t gpio_num)
 {
-    gpio_isr_handler_remove(BUTTON_UP);
-    gpio_isr_handler_remove(BUTTON_DOWN);
-    gpio_isr_handler_remove(BUTTON_ENTER);
-}
-static void EnsableButtonInterrupt()
-{
-    gpio_isr_handler_add(BUTTON_UP, gpio_interrupt_handler, (void*)BUTTON_UP); 
-    gpio_isr_handler_add(BUTTON_DOWN, gpio_interrupt_handler, (void*)BUTTON_DOWN); 
-    gpio_isr_handler_add(BUTTON_ENTER, gpio_interrupt_handler, (void*)BUTTON_ENTER); 
+    if(gpio_get_level(gpio_num)==1){
+        vTaskDelay(DEBOUNCE/portTICK_PERIOD_MS);
+        if(gpio_get_level(gpio_num)==1){
+            return 1; //has press
+        }
+    }
+    return 0; //not press
 }

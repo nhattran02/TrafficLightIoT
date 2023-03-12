@@ -1,4 +1,4 @@
-# Install script for directory: /home/minhnhat/esp/workspace/TrafficLightIoT/main
+# Install script for directory: /home/minhnhat/esp/workspace/TrafficLightIoTButtonAgain/main
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
