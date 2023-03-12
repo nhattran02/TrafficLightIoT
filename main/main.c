@@ -47,6 +47,8 @@ static QueueHandle_t option_chosen_queue;
 static QueueHandle_t long_press_queue;
 
 TaskHandle_t TaskHandler_uart;
+int G1=3, Y1=4, G2=5, Y2=6;
+char G1_str[3], Y1_str[3], G2_str[3], Y2_str[3];
 
 static void button_task(void *pvParameters);
 static void uart_event_task(void *pvParameters);
@@ -57,7 +59,7 @@ static void Option1Display(ST7735_t * const dev, const FontxFile * const fx, con
 static void Option2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void Option3Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void Option4Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
-static void SetTimeLightDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
+static void SetTimeLightDisplayG1(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void GlobalConfig(void);
 static void OptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int option);
 static void DisableButtonInterrupt();
@@ -79,7 +81,7 @@ void app_main(void)
 static void OptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int option)
 {
     switch(option){
-        case 0:
+        //case 0:
         case 1:
             Option1Display(dev, fx, width, height);
             break;
@@ -90,7 +92,7 @@ static void OptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, i
             Option3Display(dev, fx, width, height);
             break;
         case 4:
-        case 5:
+        //case 5:
             Option4Display(dev, fx, width, height);
             break;
         default:
@@ -288,7 +290,7 @@ static void screen_task(void *pvParameters)
     IntroDisplay(&dev, fx24, SCREEN_WIDTH, SCREEN_HEIGHT);
     OptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting);
     //for test:
-    //SetTimeLightDisplay(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
+    // SetTimeLightDisplay(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	while (1) {
         if(xQueueReceive(option_queue, &option_counting, portTICK_PERIOD_MS)){
@@ -300,9 +302,11 @@ static void screen_task(void *pvParameters)
                 //printf("Option %d is chosen!\n", option_chosen);
                 switch(option_chosen){
                     case 1:
-                        SetTimeLightDisplay(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
-                        printf("Im here!\n");
-                        // xTaskCreate(&time_display_task, "Time Display Task", 4096, NULL, 2, NULL);
+                        SetTimeLightDisplayG1(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
+                        while (1) {
+
+                        }
+                        
                         lcdFillScreen(&dev, BLACK);
                         break;
                     case 2:
@@ -314,7 +318,7 @@ static void screen_task(void *pvParameters)
                     case 4:      
                         xTaskCreate(&uart_event_task, "UART Task", 4096, NULL, 2, NULL);
                         while(!xQueueReceive(long_press_queue, &pin_number, portTICK_PERIOD_MS)){
-                            SetTimeLightDisplay(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
+                            SetTimeLightDisplayG1(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
                         }
                         lcdFillScreen(&dev, BLACK);
                         break;
@@ -480,12 +484,19 @@ static void Option4Display(ST7735_t * const dev, const FontxFile * const fx, con
     }
 }
 
-static void SetTimeLightDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
+static void SetTimeLightDisplayG1(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
 {
+
 
     lcdSetFontDirection(dev, DIRECTION270);
     lcdFillScreen(dev, BLACK);
     static uint8_t ascii[30];
+    itoa(G1, G1_str, 10); //int to string
+    itoa(Y1, Y1_str, 10); //int to string
+    itoa(G2, G2_str, 10); //int to string
+    itoa(Y2, Y2_str, 10); //int to string
+
+
     strcpy((char*)ascii, "    Set TimeLight   ");
     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
     lcdDrawLine(dev, 15, 160, 15, 0, WHITE);    
@@ -493,24 +504,24 @@ static void SetTimeLightDisplay(ST7735_t * const dev, const FontxFile * const fx
     lcdDrawString(dev, fx, 40, 160, ascii, WHITE);
     strcpy((char*)ascii, "G1:");
     lcdDrawString(dev, fx, 60, 140, ascii, GREEN);
-    strcpy((char*)ascii, "999");
+    strcpy((char*)ascii, "0");
     lcdDrawString(dev, fx, 60, 116, ascii, GREEN);
 
     strcpy((char*)ascii, "Y1:");
     lcdDrawString(dev, fx, 60, 60, ascii, YELLOW);
-    strcpy((char*)ascii, "999");
+    strcpy((char*)ascii, Y1_str);
     lcdDrawString(dev, fx, 60, 36, ascii, YELLOW);
 
     strcpy((char*)ascii, "Phase 2:");
     lcdDrawString(dev, fx, 85, 160, ascii, WHITE);
     strcpy((char*)ascii, "G2:");
     lcdDrawString(dev, fx, 110, 140, ascii, GREEN);
-    strcpy((char*)ascii, "999");
+    strcpy((char*)ascii, G2_str);
     lcdDrawString(dev, fx, 110, 116, ascii, GREEN);
 
     strcpy((char*)ascii, "Y2:");
     lcdDrawString(dev, fx, 110, 60, ascii, YELLOW);
-    strcpy((char*)ascii, "999");
+    strcpy((char*)ascii, Y2_str);
     lcdDrawString(dev, fx, 110, 36, ascii, YELLOW);
 }
 static void DisableButtonInterrupt()
