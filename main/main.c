@@ -35,7 +35,7 @@
 #define GPIO_RESET              18
 #define INTERVAL                2000    
 #define WAIT                    vTaskDelay(INTERVAL/portTICK_PERIOD_MS)
-// #define DEBOUNCE                0
+#define DEBOUNCE                10
 
 static QueueHandle_t uart0_queue;
 
@@ -143,12 +143,12 @@ static void GlobalConfig(void)
     gpio_set_direction(BUTTON_UP, GPIO_MODE_INPUT);
     gpio_set_direction(BUTTON_DOWN, GPIO_MODE_INPUT);
     gpio_set_direction(BUTTON_ENTER, GPIO_MODE_INPUT);
-    gpio_pullup_dis(BUTTON_UP);
-    gpio_pullup_dis(BUTTON_DOWN);
-    gpio_pullup_dis(BUTTON_ENTER);
-    gpio_pulldown_en(BUTTON_UP);
-    gpio_pulldown_en(BUTTON_DOWN);
-    gpio_pulldown_en(BUTTON_ENTER);
+    gpio_pullup_en(BUTTON_UP);
+    gpio_pullup_en(BUTTON_DOWN);
+    gpio_pullup_en(BUTTON_ENTER);
+    gpio_pulldown_dis(BUTTON_UP);
+    gpio_pulldown_dis(BUTTON_DOWN);
+    gpio_pulldown_dis(BUTTON_ENTER);
 
     //Install UART driver, and get the queue.
     uart_driver_install(EX_UART_NUM, BUF_SIZE * 2, BUF_SIZE * 2, 20, &uart0_queue, 0);
@@ -532,12 +532,15 @@ static void SetTimeLightDisplay(ST7735_t * const dev, const FontxFile * const fx
 }
 static int DetectButton()
 {
-    if(gpio_get_level(BUTTON_ENTER)==1){
-        return BUTTON_ENTER;
-    }else if(gpio_get_level(BUTTON_DOWN)==1){
-        return BUTTON_DOWN;
-    }else if(gpio_get_level(BUTTON_UP)==1){
-        return BUTTON_UP;
+    gpio_num_t buttons[] = {BUTTON_ENTER, BUTTON_DOWN, BUTTON_UP};
+    int button_count = sizeof(buttons)/sizeof(gpio_num_t);
+    for(int i = 0; i < button_count; i ++){
+        if(gpio_get_level(buttons[i])==0){
+            vTaskDelay(DEBOUNCE/portTICK_PERIOD_MS);
+            if(gpio_get_level(buttons[i])==0){
+                return buttons[i];
+            }
+        }
     }
     return -1; //not press
 }
