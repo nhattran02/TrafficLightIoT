@@ -1,4 +1,4 @@
-/* * Data converted from /home/minhnhat/esp/workspace/TrafficLightIoTButtonAgain/build/esp-idf/mbedtls/x509_crt_bundle
+/* * Data converted from /home/minhnhat/esp/workspace/TrafficLightIoT/build/esp-idf/mbedtls/x509_crt_bundle
  */
 .data
 .section .rodata.embedded

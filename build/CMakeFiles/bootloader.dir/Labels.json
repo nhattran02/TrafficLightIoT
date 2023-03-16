@@ -2,34 +2,34 @@
 	"sources" : 
 	[
 		{
-			"file" : "/home/minhnhat/esp/workspace/TrafficLightIoTButtonAgain/build/CMakeFiles/bootloader"
+			"file" : "/home/minhnhat/esp/workspace/TrafficLightIoT/build/CMakeFiles/bootloader"
 		},
 		{
-			"file" : "/home/minhnhat/esp/workspace/TrafficLightIoTButtonAgain/build/CMakeFiles/bootloader.rule"
+			"file" : "/home/minhnhat/esp/workspace/TrafficLightIoT/build/CMakeFiles/bootloader.rule"
 		},
 		{
-			"file" : "/home/minhnhat/esp/workspace/TrafficLightIoTButtonAgain/build/CMakeFiles/bootloader-complete.rule"
+			"file" : "/home/minhnhat/esp/workspace/TrafficLightIoT/build/CMakeFiles/bootloader-complete.rule"
 		},
 		{
-			"file" : "/home/minhnhat/esp/workspace/TrafficLightIoTButtonAgain/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule"
+			"file" : "/home/minhnhat/esp/workspace/TrafficLightIoT/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule"
 		},
 		{
-			"file" : "/home/minhnhat/esp/workspace/TrafficLightIoTButtonAgain/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule"
+			"file" : "/home/minhnhat/esp/workspace/TrafficLightIoT/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule"
 		},
 		{
-			"file" : "/home/minhnhat/esp/workspace/TrafficLightIoTButtonAgain/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule"
+			"file" : "/home/minhnhat/esp/workspace/TrafficLightIoT/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule"
 		},
 		{
-			"file" : "/home/minhnhat/esp/workspace/TrafficLightIoTButtonAgain/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule"
+			"file" : "/home/minhnhat/esp/workspace/TrafficLightIoT/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule"
 		},
 		{
-			"file" : "/home/minhnhat/esp/workspace/TrafficLightIoTButtonAgain/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule"
+			"file" : "/home/minhnhat/esp/workspace/TrafficLightIoT/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule"
 		},
 		{
-			"file" : "/home/minhnhat/esp/workspace/TrafficLightIoTButtonAgain/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule"
+			"file" : "/home/minhnhat/esp/workspace/TrafficLightIoT/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule"
 		},
 		{
-			"file" : "/home/minhnhat/esp/workspace/TrafficLightIoTButtonAgain/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule"
+			"file" : "/home/minhnhat/esp/workspace/TrafficLightIoT/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule"
 		}
 	],
 	"target" : 

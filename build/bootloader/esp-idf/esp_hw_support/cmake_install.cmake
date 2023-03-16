@@ -34,6 +34,6 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/minhnhat/esp/workspace/TrafficLightIoTButtonAgain/build/bootloader/esp-idf/esp_hw_support/port/esp32/cmake_install.cmake")
+  include("/home/minhnhat/esp/workspace/TrafficLightIoT/build/bootloader/esp-idf/esp_hw_support/port/esp32/cmake_install.cmake")
 endif()
 
