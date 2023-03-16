@@ -19,6 +19,7 @@
 #define BUTTON_UP               15
 #define BUTTON_DOWN             4
 #define BUTTON_ENTER            13
+#define BUTTON_NOTPRESS         -1
 #define EX_UART_NUM             UART_NUM_0
 #define PATTERN_CHR_NUM         (3)       
 #define BUF_SIZE                (1024)
@@ -34,16 +35,13 @@
 #define GPIO_RESET              18
 #define INTERVAL                2000    
 #define WAIT                    vTaskDelay(INTERVAL/portTICK_PERIOD_MS)
-#define DEBOUNCE                50
+// #define DEBOUNCE                0
 
 static QueueHandle_t uart0_queue;
-static QueueHandle_t button_queue;
-static QueueHandle_t option_queue;
-static QueueHandle_t option_chosen_queue;
-static QueueHandle_t long_press_queue;
+
 
 TaskHandle_t TaskHandler_uart;
-int G1=345, Y1=444, G2=555, Y2=666;
+int G1=5, Y1=5, G2=5, Y2=5;
 char G1_str[3], Y1_str[3], G2_str[3], Y2_str[3];
 typedef enum {
     G1_CHOSEN=0,
@@ -171,15 +169,13 @@ static void GlobalConfig(void)
 		.format_if_mount_failed =true
 	};
 	esp_vfs_spiffs_register(&conf);
-    button_queue = xQueueCreate(1, sizeof(int));
-    option_queue = xQueueCreate(1, sizeof(int));
-    option_chosen_queue = xQueueCreate(1, sizeof(int));
-    long_press_queue = xQueueCreate(1, sizeof(int));
+
 }
 
 static void screen_task(void *pvParameters)
 {
     int option_counting = 1; 
+    int button_state = BUTTON_NOTPRESS;
     bool exit_loop = false;
 	static FontxFile fx16[2];
 	InitFontx(fx16,"/spiffs/ILGH16XB.FNT",""); // 8x16Dot Gothic
@@ -193,55 +189,49 @@ static void screen_task(void *pvParameters)
     
     OptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting);
 	while (1) {
-        if(DetectButton(BUTTON_DOWN)){
-            // if(option_counting>=4){
-            //     option_counting=4;
-            // }else{
-            //     ++option_counting ;
-            // }
+        if(DetectButton()==BUTTON_DOWN){
             option_counting = (option_counting < 4) ? option_counting + 1 : 4;
             OptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting);
-        }else if(DetectButton(BUTTON_UP)){
-            // if(option_counting<=1){
-            //     option_counting=1;
-            // }else{
-            //     --option_counting ;
-            // }
+        }else if(DetectButton()==BUTTON_UP){
             option_counting = (option_counting > 1) ? option_counting - 1 : 1;
             OptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting);
-        }else if(DetectButton(BUTTON_ENTER)){
+        }else if(DetectButton()==BUTTON_ENTER){
             switch (option_counting){
             case 1:
                 lcdFillScreen(&dev, BLACK);
                 exit_loop = false;
                 while(!exit_loop){
                     SetTimeLightDisplay(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT); 
-                    while(!DetectButton(BUTTON_UP) && !DetectButton(BUTTON_DOWN) && !DetectButton(BUTTON_ENTER));
-                    if(DetectButton(BUTTON_ENTER)){
+                    while((button_state = DetectButton()) == -1);
+                    if(button_state == BUTTON_ENTER){
                         switch (time_light_chosen){
-                            case G1_CHOSEN:
-                                time_light_chosen = Y1_CHOSEN;
-                                break;
-                            case Y1_CHOSEN:
-                                time_light_chosen = G2_CHOSEN;
-                                break;
-                            case G2_CHOSEN:
-                                time_light_chosen = Y2_CHOSEN;
-                                break;
+                            case G1_CHOSEN: time_light_chosen = Y1_CHOSEN; break;
+                            case Y1_CHOSEN: time_light_chosen = G2_CHOSEN; break;
+                            case G2_CHOSEN: time_light_chosen = Y2_CHOSEN; break;
                             case Y2_CHOSEN:
                                 time_light_chosen = G1_CHOSEN;
                                 //saving data
                                 lcdFillScreen(&dev, BLACK);
                                 exit_loop = true;
                                 break;
-                            default:
-                                break;
+                            default: break;
                         }
-                    }else if(DetectButton(BUTTON_DOWN)){
-                        gpio_set_level(LED, 1);
-
-                    }else if(DetectButton(BUTTON_UP)){
-                        gpio_set_level(LED, 0);
+                    }else if(button_state == BUTTON_DOWN){
+                        switch (time_light_chosen){
+                            case G1_CHOSEN: G1 = (G1 > 0) ? G1 - 1 : 0; break;
+                            case Y1_CHOSEN: Y1 = (Y1 > 0) ? Y1 - 1 : 0; break;
+                            case G2_CHOSEN: G2 = (G2 > 0) ? G2 - 1 : 0; break;
+                            case Y2_CHOSEN: Y2 = (Y2 > 0) ? Y2 - 1 : 0; break;
+                            default: break;
+                        }
+                    }else if(button_state == BUTTON_UP){
+                        switch (time_light_chosen){
+                            case G1_CHOSEN: G1 = (G1 < 999) ? G1 + 1 : 999; break;
+                            case Y1_CHOSEN: Y1 = (Y1 < 999) ? Y1 + 1 : 999; break;
+                            case G2_CHOSEN: G2 = (G2 < 999) ? G2 + 1 : 999; break;
+                            case Y2_CHOSEN: Y2 = (Y2 < 999) ? Y2 + 1 : 999; break;
+                            default: break;
+                        }
                     }
                 }
                 break;
@@ -420,10 +410,10 @@ static void SetTimeLightDisplay(ST7735_t * const dev, const FontxFile * const fx
 {
     static uint8_t ascii[30];
     lcdSetFontDirection(dev, DIRECTION270);
-    itoa(G1, G1_str, 10); //int to string
-    itoa(Y1, Y1_str, 10); //int to string
-    itoa(G2, G2_str, 10); //int to string
-    itoa(Y2, Y2_str, 10); //int to string
+    itoa(G1, G1_str, 10); 
+    itoa(Y1, Y1_str, 10); 
+    itoa(G2, G2_str, 10); 
+    itoa(Y2, Y2_str, 10);
 
     strcpy((char*)ascii, "    Set TimeLight   ");
     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
@@ -540,13 +530,14 @@ static void SetTimeLightDisplay(ST7735_t * const dev, const FontxFile * const fx
         break;
     }
 }
-static int DetectButton(gpio_num_t gpio_num)
+static int DetectButton()
 {
-    if(gpio_get_level(gpio_num)==1){
-        vTaskDelay(DEBOUNCE/portTICK_PERIOD_MS);
-        if(gpio_get_level(gpio_num)==1){
-            return 1; //has press
-        }
+    if(gpio_get_level(BUTTON_ENTER)==1){
+        return BUTTON_ENTER;
+    }else if(gpio_get_level(BUTTON_DOWN)==1){
+        return BUTTON_DOWN;
+    }else if(gpio_get_level(BUTTON_UP)==1){
+        return BUTTON_UP;
     }
-    return 0; //not press
+    return -1; //not press
 }
