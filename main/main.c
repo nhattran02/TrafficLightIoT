@@ -1,4 +1,5 @@
 /*Author: Tran Minh Nhat - 2014008*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,45 +16,69 @@
 #include "st7735s.h"
 #include "fontx.h"
 
+
 #define LED                     2 
-#define BUTTON_UP               15
-#define BUTTON_DOWN             4
-#define BUTTON_ENTER            13
-#define BUTTON_NOTPRESS         -1
+#define BUTTON_UP               35 
+#define BUTTON_DOWN             34 
+#define BUTTON_ENTER            36 
+#define LED_RED_PHASE_1         0
+#define LED_YELLOW_PHASE_1      2
+#define LED_GREEN_PHASE_1       4
+#define LED_RED_PHASE_2         27
+#define LED_YELLOW_PHASE_2      26
+#define LED_GREEN_PHASE_2       25
 #define EX_UART_NUM             UART_NUM_0
-#define PATTERN_CHR_NUM         (3)       
+#define PATTERN_CHR_NUM         (3) 
+
+#define GPIO_MOSI               23
+#define GPIO_SCLK               19
+#define GPIO_CS                 22
+#define GPIO_DC                 21
+#define GPIO_RESET              18
+
 #define BUF_SIZE                (1024)
 #define RD_BUF_SIZE             (BUF_SIZE)
 #define SCREEN_WIDTH            130
 #define SCREEN_HEIGHT           160
 #define OFFSET_X                0
 #define OFFSET_Y                0
-#define GPIO_MOSI               23
-#define GPIO_SCLK               19
-#define GPIO_CS                 22
-#define GPIO_DC                 21
-#define GPIO_RESET              18
+
 #define INTERVAL                2000    
 #define WAIT                    vTaskDelay(INTERVAL/portTICK_PERIOD_MS)
-#define DEBOUNCE                10
+#define DEBOUNCE                20
+#define NOTPRESS                -1
 
-static QueueHandle_t uart0_queue;
-
-
-TaskHandle_t TaskHandler_uart;
-int G1=5, Y1=5, G2=5, Y2=5;
-char G1_str[3], Y1_str[3], G2_str[3], Y2_str[3];
 typedef enum {
-    G1_CHOSEN=0,
+    G1_CHOSEN = 0,
     Y1_CHOSEN,
     G2_CHOSEN,
     Y2_CHOSEN,
 }time_light_chosen_t;
 
+typedef enum{
+    LED_OFF = 0,
+    LED_ON,
+}LEDstate_t;
+
+typedef struct{
+    gpio_num_t pin;
+    uint32_t time; 
+    LEDstate_t state;
+}LED_t;
+
+TaskHandle_t TaskHandler_uart;
+static QueueHandle_t uart0_queue;
+int G1=5, Y1=5, G2=5, Y2=5;
+char G1_str[3], Y1_str[3], G2_str[3], Y2_str[3];
 time_light_chosen_t time_light_chosen = G1_CHOSEN; 
 
-static void uart_event_task(void *pvParameters);
-static void screen_task(void *pvParameters);
+
+LED_t *LEDLoadPara(gpio_num_t , uint32_t , LEDstate_t );
+static void LEDSetRaw(LED_t *);
+static void LEDSet(gpio_num_t LEDPin, uint32_t LEDtime, LEDstate_t LEDState);
+static void uart_event_task(void *);
+static void screen_task(void *);
+static void LED_task(void *);
 static void IntroDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void Option1Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void Option2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
@@ -61,17 +86,55 @@ static void Option3Display(ST7735_t * const dev, const FontxFile * const fx, con
 static void Option4Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void SetTimeLightDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void GlobalConfig(void);
-static void OptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int option);
-static int DetectButton();
+static void OptionSelect(ST7735_t * , FontxFile *, int , int , int );
+static int  DetectButton();
+
 
 void app_main(void)
-{
+{   
     GlobalConfig();
+
 	// xTaskCreate(&button_task, "Button",    4096, NULL, 2, NULL);
-	xTaskCreate(&screen_task, "TFT Screen", 4096, NULL, 2, NULL);
+	xTaskCreate(&screen_task, "TFT Screen", 4096, NULL, 3, NULL);
+	xTaskCreate(&LED_task, "LED task", 4096, NULL, 3, NULL);            
+
 	//xTaskCreate(&uart_event_task, "UART Task", 4096, NULL, 2, NULL);
 }
 
+static void LED_task(void *pvParameters)
+{
+    // LED_t * LEDConfig;
+    while(1){
+        // LEDSet(LED, 5, LED_OFF);
+        LEDSet(LED_RED_PHASE_1, 2, LED_ON);
+        LEDSet(LED_YELLOW_PHASE_1, 2, LED_ON);
+        LEDSet(LED_GREEN_PHASE_1, 2, LED_ON);
+    }
+    // free(LEDConfig);
+}
+LED_t *LEDLoadPara(gpio_num_t LEDPin, uint32_t LEDtime, LEDstate_t LEDState)
+{
+    LED_t *LEDConfig = malloc(sizeof(LED_t));
+    LEDConfig->pin = LEDPin;
+    LEDConfig->time = LEDtime;
+    LEDConfig->state = LEDState;
+    return LEDConfig;
+}
+static void LEDSetRaw(LED_t *LEDConfig)
+{
+    gpio_set_level(LEDConfig->pin, LEDConfig->state);
+    vTaskDelay((LEDConfig->time*1000)/portTICK_PERIOD_MS);
+    gpio_set_level(LEDConfig->pin, !(LEDConfig->state));
+    // vTaskDelay((LEDConfig->time*1000)/portTICK_PERIOD_MS);
+
+}
+static void LEDSet(gpio_num_t LEDPin, uint32_t LEDtime, LEDstate_t LEDState)
+{
+    LED_t * LEDConfig;
+    LEDConfig = LEDLoadPara(LEDPin, LEDtime, LEDState);
+    LEDSetRaw(LEDConfig);
+    free(LEDConfig);
+}
 static void OptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int option)
 {
     switch(option){
@@ -140,6 +203,13 @@ static void uart_event_task(void *pvParameters)
 static void GlobalConfig(void)
 {
     gpio_set_direction(LED, GPIO_MODE_OUTPUT);
+    gpio_set_direction(LED_RED_PHASE_1, GPIO_MODE_OUTPUT);
+    gpio_set_direction(LED_YELLOW_PHASE_1, GPIO_MODE_OUTPUT);
+    gpio_set_direction(LED_GREEN_PHASE_1, GPIO_MODE_OUTPUT);
+    gpio_set_direction(LED_RED_PHASE_2, GPIO_MODE_OUTPUT);
+    gpio_set_direction(LED_YELLOW_PHASE_2, GPIO_MODE_OUTPUT);
+    gpio_set_direction(LED_GREEN_PHASE_2, GPIO_MODE_OUTPUT);
+
     gpio_set_direction(BUTTON_UP, GPIO_MODE_INPUT);
     gpio_set_direction(BUTTON_DOWN, GPIO_MODE_INPUT);
     gpio_set_direction(BUTTON_ENTER, GPIO_MODE_INPUT);
@@ -175,7 +245,7 @@ static void GlobalConfig(void)
 static void screen_task(void *pvParameters)
 {
     int option_counting = 1; 
-    int button_state = BUTTON_NOTPRESS;
+    int button_state = NOTPRESS;
     bool exit_loop = false;
 	static FontxFile fx16[2];
 	InitFontx(fx16,"/spiffs/ILGH16XB.FNT",""); // 8x16Dot Gothic
@@ -542,5 +612,5 @@ static int DetectButton()
             }
         }
     }
-    return -1; //not press
+    return NOTPRESS; //not press
 }
