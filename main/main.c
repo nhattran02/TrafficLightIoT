@@ -1,5 +1,10 @@
-/*Author: Tran Minh Nhat - 2014008*/
-
+/*
+ * main.c
+ *
+ *  Created on: 11.04.2023
+ *      Author: Tran Minh Nhat - 2014008
+ */
+ 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -85,14 +90,18 @@ static void Option2Display(ST7735_t * const dev, const FontxFile * const fx, con
 static void Option3Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void Option4Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void SetTimeLightDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
-static void GlobalConfig(void);
+static void Init_Hardware(void);
 static void OptionSelect(ST7735_t * , FontxFile *, int , int , int );
 static int  DetectButton();
 
 
 void app_main(void)
 {   
-    GlobalConfig();
+    Init_Hardware();
+    // gpio_set_level(LED_RED_PHASE_1, 1);
+    // vTaskDelay(1000/portTICK_PERIOD_MS);
+    // gpio_set_level(LED_RED_PHASE_1, 0);
+    // vTaskDelay(1000/portTICK_PERIOD_MS);
 
 	// xTaskCreate(&button_task, "Button",    4096, NULL, 2, NULL);
 	xTaskCreate(&screen_task, "TFT Screen", 4096, NULL, 3, NULL);
@@ -103,14 +112,14 @@ void app_main(void)
 
 static void LED_task(void *pvParameters)
 {
-    // LED_t * LEDConfig;
+    gpio_set_level(LED_RED_PHASE_1,  1);
     while(1){
         // LEDSet(LED, 5, LED_OFF);
-        LEDSet(LED_RED_PHASE_1, 2, LED_ON);
-        LEDSet(LED_YELLOW_PHASE_1, 2, LED_ON);
-        LEDSet(LED_GREEN_PHASE_1, 2, LED_ON);
+        // LEDSet(LED_RED_PHASE_1, 2, LED_ON);
+        // LEDSet(LED_YELLOW_PHASE_1, 2, LED_ON);
+        // LEDSet(LED_GREEN_PHASE_1, 2, LED_ON);
     }
-    // free(LEDConfig);
+    
 }
 LED_t *LEDLoadPara(gpio_num_t LEDPin, uint32_t LEDtime, LEDstate_t LEDState)
 {
@@ -200,7 +209,7 @@ static void uart_event_task(void *pvParameters)
     vTaskDelete(NULL);
 }
 
-static void GlobalConfig(void)
+static void Init_Hardware(void)
 {
     gpio_set_direction(LED, GPIO_MODE_OUTPUT);
     gpio_set_direction(LED_RED_PHASE_1, GPIO_MODE_OUTPUT);
