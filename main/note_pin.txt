@@ -1,8 +1,10 @@
 74HC595 connect with ESP32
     VCC: yes
+    GND: yes 
     Q0: output
     DS (data): 5
     !OE = GND
+    !MR = VCC
     ST_CP (latch clock) = 17
     SH_CP (shift clock) = 16
     !MR: no 

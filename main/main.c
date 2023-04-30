@@ -1,7 +1,7 @@
 /*
  * main.c
  *
- *  Created on: 11.04.2023
+ *  Created on: 12.03.2023
  *      Author: Tran Minh Nhat - 2014008
  */
  
@@ -20,7 +20,7 @@
 #include "esp_spiffs.h"
 #include "st7735s.h"
 #include "fontx.h"
-
+#include "74HC595.h"
 
 #define LED                     2 
 #define BUTTON_UP               35 
@@ -34,6 +34,10 @@
 #define LED_GREEN_PHASE_2       25
 #define EX_UART_NUM             UART_NUM_0
 #define PATTERN_CHR_NUM         (3) 
+
+#define DATA_PIN_595            5 
+#define LATCH_PIN_595           17
+#define CLOCK_PIN_595           16
 
 #define GPIO_MOSI               23
 #define GPIO_SCLK               19
@@ -70,7 +74,7 @@ typedef struct{
     uint32_t time; 
     LEDstate_t state;
 }LED_t;
-
+const int LED7Seg[10] = {0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F};
 TaskHandle_t TaskHandler_uart;
 static QueueHandle_t uart0_queue;
 int G1=5, Y1=5, G2=5, Y2=5;
@@ -84,6 +88,7 @@ static void LEDSet(gpio_num_t LEDPin, uint32_t LEDtime, LEDstate_t LEDState);
 static void uart_event_task(void *);
 static void screen_task(void *);
 static void LED_task(void *);
+static void LED7Seg_task(void *);
 static void IntroDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void Option1Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void Option2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
@@ -98,28 +103,39 @@ static int  DetectButton();
 void app_main(void)
 {   
     Init_Hardware();
-    // gpio_set_level(LED_RED_PHASE_1, 1);
-    // vTaskDelay(1000/portTICK_PERIOD_MS);
-    // gpio_set_level(LED_RED_PHASE_1, 0);
-    // vTaskDelay(1000/portTICK_PERIOD_MS);
+    
+	xTaskCreate(&screen_task, "TFT Screen", 1024*4, NULL, 3, NULL);
+	xTaskCreate(&LED_task, "LED task", 1024*4, NULL, 3, NULL);            
+	xTaskCreate(&LED7Seg_task, "LED 7 Segment", 1024*4, NULL, 1, NULL);
 
-	// xTaskCreate(&button_task, "Button",    4096, NULL, 2, NULL);
-	xTaskCreate(&screen_task, "TFT Screen", 4096, NULL, 3, NULL);
-	xTaskCreate(&LED_task, "LED task", 4096, NULL, 3, NULL);            
 
 	//xTaskCreate(&uart_event_task, "UART Task", 4096, NULL, 2, NULL);
 }
+static void LED7Seg_task(void *pvParameters)
+{
+    static IC74HC595_t IC74HC595;
 
+
+    Init74HC595(&IC74HC595, DATA_PIN_595, LATCH_PIN_595, CLOCK_PIN_595);
+    
+
+    
+    while(1){ 
+        write4Byte74HC595(&IC74HC595, LED7Seg[G1/10], LED7Seg[G1%10], LED7Seg[Y1/10], LED7Seg[Y1%10]);
+        // vTaskDelay(pdMS_TO_TICKS(500));
+    }
+    
+}
 static void LED_task(void *pvParameters)
 {
     gpio_set_level(LED_RED_PHASE_1,  1);
     while(1){
+        vTaskDelay(pdMS_TO_TICKS(10)); //prevent watchdog timer trigger   
         // LEDSet(LED, 5, LED_OFF);
         // LEDSet(LED_RED_PHASE_1, 2, LED_ON);
         // LEDSet(LED_YELLOW_PHASE_1, 2, LED_ON);
         // LEDSet(LED_GREEN_PHASE_1, 2, LED_ON);
-    }
-    
+    } 
 }
 LED_t *LEDLoadPara(gpio_num_t LEDPin, uint32_t LEDtime, LEDstate_t LEDState)
 {
@@ -211,7 +227,7 @@ static void uart_event_task(void *pvParameters)
 
 static void Init_Hardware(void)
 {
-    gpio_set_direction(LED, GPIO_MODE_OUTPUT);
+    // gpio_set_direction(LED, GPIO_MODE_OUTPUT);
     gpio_set_direction(LED_RED_PHASE_1, GPIO_MODE_OUTPUT);
     gpio_set_direction(LED_YELLOW_PHASE_1, GPIO_MODE_OUTPUT);
     gpio_set_direction(LED_GREEN_PHASE_1, GPIO_MODE_OUTPUT);
@@ -248,7 +264,7 @@ static void Init_Hardware(void)
 		.format_if_mount_failed =true
 	};
 	esp_vfs_spiffs_register(&conf);
-
+    
 }
 
 static void screen_task(void *pvParameters)
@@ -268,6 +284,7 @@ static void screen_task(void *pvParameters)
     
     OptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting);
 	while (1) {
+        vTaskDelay(pdMS_TO_TICKS(10)); //prevent watchdog timer trigger   
         if(DetectButton()==BUTTON_DOWN){
             option_counting = (option_counting < 4) ? option_counting + 1 : 4;
             OptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting);
@@ -280,8 +297,11 @@ static void screen_task(void *pvParameters)
                 lcdFillScreen(&dev, BLACK);
                 exit_loop = false;
                 while(!exit_loop){
+                    vTaskDelay(pdMS_TO_TICKS(10)); //prevent watchdog timer trigger   
                     SetTimeLightDisplay(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT); 
-                    while((button_state = DetectButton()) == -1);
+                    while((button_state = DetectButton()) == -1){
+                        vTaskDelay(pdMS_TO_TICKS(10)); //prevent watchdog timer trigger   
+                    }
                     if(button_state == BUTTON_ENTER){
                         switch (time_light_chosen){
                             case G1_CHOSEN: time_light_chosen = Y1_CHOSEN; break;
