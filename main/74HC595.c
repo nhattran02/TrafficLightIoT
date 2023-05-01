@@ -40,7 +40,6 @@ void Init74HC595(IC74HC595_t *IC74HC595, int16_t dataPin, int16_t latchPin, int1
     IC74HC595->dataPin = dataPin;
     IC74HC595->latchPin = latchPin;
     IC74HC595->clkPin = clkPin;
-    printf("Init HC595 successfully! \n");
 }
 
 /**
@@ -56,7 +55,6 @@ void clock74HC595(IC74HC595_t *IC74HC595)
 {
     gpio_set_level(IC74HC595->clkPin, 1);
     gpio_set_level(IC74HC595->clkPin, 0);
-    printf("Clock!! \n");
 }
 /**
  * Make a clock in latch clock pin
@@ -71,7 +69,6 @@ void latch74HC595(IC74HC595_t *const IC74HC595)
 {
     gpio_set_level(IC74HC595->latchPin, 1);
     gpio_set_level(IC74HC595->latchPin, 0);
-    printf("Latch!! \n");
 }
 
 /**
@@ -91,11 +88,9 @@ void writeByte74HC595(IC74HC595_t *IC74HC595, uint8_t data)
     for(idx = 0; idx < 8; idx++){
         if(data & (0x01 << (7 - idx))){
             gpio_set_level(IC74HC595->dataPin, 1);
-            printf("1\n");
             // vTaskDelay(pdMS_TO_TICKS(1000)); 
         }else {
             gpio_set_level(IC74HC595->dataPin, 0);
-            printf("0\n");
             // vTaskDelay(pdMS_TO_TICKS(1000)); 
         }
         clock74HC595(IC74HC595);

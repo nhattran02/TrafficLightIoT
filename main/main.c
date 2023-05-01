@@ -78,7 +78,14 @@ int G1_save = 10, Y1_save = 5, G2_save = 8, Y2_save = 4;
 int R1_save = 12, R2_save = 15;
 char G1_str[3], Y1_str[3], G2_str[3], Y2_str[3];
 time_light_chosen_t time_light_chosen = G1_CHOSEN; 
+bool isRED1on = false;
+bool isGREEN1on = false;
+bool isYELLOW1on = false;
+bool isRED2on = false; 
+bool isGREEN2on = false; 
+bool isYELLOW2on = false;
 
+bool isLEDTaskRunning = true;
 
 static void uart_event_task(void *);
 static void screen_task(void *);
@@ -88,17 +95,20 @@ static void Option1Display(ST7735_t * const dev, const FontxFile * const fx, con
 static void Option2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void Option3Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void Option4Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
-static void RED1Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
-static void GREEN1Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
-static void YELLOW1Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
-static void RED2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
-static void GREEN2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
-static void YELLOW2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void EXITDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void PHASE1Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void PHASE2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void SAVEDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void BACKDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
+static void SubManualAdjOptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int option);
+static void Sub2ManualAdjOptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int option);
+static void SubRED1Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
+static void SubGREEN1Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
+static void SubYELLOW1Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
+static void SubRED2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
+static void SubGREEN2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
+static void SubYELLOW2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
+static void BACK2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 
 static void SetTimeLightDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void SavedDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height, int idx);
@@ -211,20 +221,42 @@ static void ManualAdjOptionSelect(ST7735_t * dev, FontxFile *fx, int width, int 
             break;
     }
 }
+
+
 static void SubManualAdjOptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int option)
 {
         switch(option){
         case 1:
-            RED1Display(dev, fx, width, height);
+            SubRED1Display(dev, fx, width, height);
             break;
         case 2:
-            GREEN1Display(dev, fx, width, height);
+            SubGREEN1Display(dev, fx, width, height);
             break;
         case 3:
-            YELLOW1Display(dev, fx, width, height);
+            SubYELLOW1Display(dev, fx, width, height);
             break;
         case 4: 
             BACKDisplay(dev, fx, width, height);
+            break;
+        default:
+            break;
+    }
+}
+
+static void Sub2ManualAdjOptionSelect(ST7735_t * dev, FontxFile *fx, int width, int height, int option)
+{
+    switch(option){
+        case 1:
+            SubRED2Display(dev, fx, width, height);
+            break;
+        case 2:
+            SubGREEN2Display(dev, fx, width, height);
+            break;
+        case 3:
+            SubYELLOW2Display(dev, fx, width, height);
+            break;
+        case 4: 
+            BACK2Display(dev, fx, width, height);
             break;
         default:
             break;
@@ -375,7 +407,10 @@ static void screen_task(void *pvParameters)
                                 G2_save = G2;
                                 Y2_save = Y2;
                                 R2_save = R2;
-                                vTaskDelete(TaskHandler_LED);
+                                if(isLEDTaskRunning){
+                                    vTaskDelete(TaskHandler_LED);
+                                    isLEDTaskRunning = false;
+                                }
                                 LEDAllOff();
                                 gpio_set_level(LED_YELLOW_PHASE_1, 1);
                                 gpio_set_level(LED_YELLOW_PHASE_2, 1);
@@ -388,6 +423,7 @@ static void screen_task(void *pvParameters)
                                 gpio_set_level(LED_YELLOW_PHASE_1, 0);
                                 gpio_set_level(LED_YELLOW_PHASE_2, 0);
 
+                                isLEDTaskRunning = true;
 	                            xTaskCreate(&LED_task, "LED task", 1024*4, NULL, 3, &TaskHandler_LED);      
                                 lcdFillScreen(&dev, BLACK);
                                 exit_loop = true;
@@ -429,7 +465,7 @@ static void screen_task(void *pvParameters)
                         switch (option_counting_2){
                         case 1:
                             lcdFillScreen(&dev, BLACK);
-                            RED1Display(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
+                            SubRED1Display(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
                             while (1){
                                 vTaskDelay(pdMS_TO_TICKS(10)); //prevent watchdog timer trigger   
 
@@ -440,43 +476,178 @@ static void screen_task(void *pvParameters)
                                     option_counting_3 = (option_counting_3 > 1) ? option_counting_3 - 1 : 1;
                                     SubManualAdjOptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting_3);
                                 }else if(DetectButton() == BUTTON_ENTER){
-
+                                    switch(option_counting_3){
+                                        case 1:
+                                            isRED1on = !isRED1on;
+                                            if(isRED1on){
+                                                isGREEN1on = false;
+                                                isYELLOW1on = false;
+                                            }
+                                            SubManualAdjOptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting_3);
+                                            
+                                            break;
+                                        case 2:
+                                            isGREEN1on = !isGREEN1on;
+                                            if(isGREEN1on){
+                                                isRED1on = false;
+                                                isYELLOW1on = false;
+                                            }
+                                            SubManualAdjOptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting_3);
+                                            break;
+                                        case 3:
+                                            isYELLOW1on = !isYELLOW1on;
+                                            if(isYELLOW1on){
+                                                isRED1on = false;
+                                                isGREEN1on = false;
+                                            }
+                                            SubManualAdjOptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting_3);
+                                            break;
+                                        case 4:
+                                            // goto BACK;
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                    if(option_counting_3 == 4){
+                                        option_counting_3 = 1;
+                                        PHASE1Display(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
+                                        break;
+                                    }
                                 }
                             }
                             break;
                         case 2:
+                            lcdFillScreen(&dev, BLACK);
+                            SubRED2Display(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
+                            while (1){
+                                vTaskDelay(pdMS_TO_TICKS(10)); //prevent watchdog timer trigger   
 
+                                if(DetectButton() == BUTTON_DOWN){
+                                    option_counting_3 = (option_counting_3 < 4) ? option_counting_3 + 1 : 4;
+                                    Sub2ManualAdjOptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting_3);
+                                }else if(DetectButton() == BUTTON_UP){
+                                    option_counting_3 = (option_counting_3 > 1) ? option_counting_3 - 1 : 1;
+                                    Sub2ManualAdjOptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting_3);
+                                }else if(DetectButton() == BUTTON_ENTER){
+                                    switch(option_counting_3){
+                                        case 1:
+                                            isRED2on = !isRED2on;
+                                            if(isRED2on){
+                                                isGREEN2on = false;
+                                                isYELLOW2on = false;
+                                            }
+                                            Sub2ManualAdjOptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting_3);
+                                            
+                                            break;
+                                        case 2:
+                                            isGREEN2on = !isGREEN2on;
+                                            if(isGREEN2on){
+                                                isRED2on = false;
+                                                isYELLOW2on = false;
+                                            }
+                                            Sub2ManualAdjOptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting_3);
+                                            break;
+                                        case 3:
+                                            isYELLOW2on = !isYELLOW2on;
+                                            if(isYELLOW2on){
+                                                isRED2on = false;
+                                                isGREEN2on = false;
+                                            }
+                                            Sub2ManualAdjOptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting_3);
+                                            break;
+                                        case 4:
+                                            // goto BACK;
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                    if(option_counting_3 == 4){
+                                        option_counting_3 = 1;
+                                        PHASE2Display(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
+                                        break;
+                                    }
+                                }
+                            }
                             break;
                         case 3:
+                            //save and apply manual adjust
+                            if(isLEDTaskRunning){
+                                vTaskDelete(TaskHandler_LED);
+                                isLEDTaskRunning = false;
+                            }
+                            LEDAllOff();
+                            gpio_set_level(LED_YELLOW_PHASE_1, 1);
+                            gpio_set_level(LED_YELLOW_PHASE_2, 1);
+                            for(int i = 3; i >= 1; i--){
+                                    SavedDisplay(&dev, fx24, SCREEN_WIDTH, SCREEN_HEIGHT, i);
+                                    write4Byte74HC595(&IC74HC595, LED7Seg[i/10], LED7Seg[i%10], LED7Seg[i/10], LED7Seg[i%10]);
+                                    vTaskDelay(pdMS_TO_TICKS(1000));
+                            }
+                            gpio_set_level(LED_YELLOW_PHASE_1, 0);
+                            gpio_set_level(LED_YELLOW_PHASE_2, 0);
+                            write4Byte74HC595(&IC74HC595, LED7Seg[88/10], LED7Seg[88%10], LED7Seg[88/10], LED7Seg[88%10]);
+                            if(isRED1on){
+                                gpio_set_level(LED_RED_PHASE_1, 1);
+                                gpio_set_level(LED_GREEN_PHASE_1, 0);
+                                gpio_set_level(LED_YELLOW_PHASE_1, 0);
+                            }else if(isGREEN1on){
+                                gpio_set_level(LED_RED_PHASE_1, 0);
+                                gpio_set_level(LED_GREEN_PHASE_1, 1);
+                                gpio_set_level(LED_YELLOW_PHASE_1, 0);
+                            }else if(isYELLOW1on){
+                                gpio_set_level(LED_RED_PHASE_1, 0);
+                                gpio_set_level(LED_GREEN_PHASE_1, 0);
+                                gpio_set_level(LED_YELLOW_PHASE_1, 1);
+                            }
 
+                            if(isRED2on){
+                                gpio_set_level(LED_RED_PHASE_2, 1);
+                                gpio_set_level(LED_GREEN_PHASE_2, 0);
+                                gpio_set_level(LED_YELLOW_PHASE_2, 0);
+                            }else if(isGREEN2on){
+                                gpio_set_level(LED_RED_PHASE_2, 0);
+                                gpio_set_level(LED_GREEN_PHASE_2, 1);
+                                gpio_set_level(LED_YELLOW_PHASE_2, 0);
+                            }else if(isYELLOW2on){
+                                gpio_set_level(LED_RED_PHASE_2, 0);
+                                gpio_set_level(LED_GREEN_PHASE_2, 0);
+                                gpio_set_level(LED_YELLOW_PHASE_2, 1);
+                            }
+                            lcdFillScreen(&dev, BLACK);
+                            ManualAdjOptionSelect(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT, option_counting_2);
+                            
                             break;
                         case 4:
+                            if(isLEDTaskRunning){
+                                vTaskDelete(TaskHandler_LED);
+                                isLEDTaskRunning = false;
+                            }
+                            LEDAllOff();
+                            gpio_set_level(LED_YELLOW_PHASE_1, 1);
+                            gpio_set_level(LED_YELLOW_PHASE_2, 1);
+                            for(int i = 3; i >= 1; i--){
+                                    SavedDisplay(&dev, fx24, SCREEN_WIDTH, SCREEN_HEIGHT, i);
+                                    write4Byte74HC595(&IC74HC595, LED7Seg[i/10], LED7Seg[i%10], LED7Seg[i/10], LED7Seg[i%10]);
+                                    vTaskDelay(pdMS_TO_TICKS(1000));
+                            }
+                            gpio_set_level(LED_YELLOW_PHASE_1, 0);
+                            gpio_set_level(LED_YELLOW_PHASE_2, 0);
+                            
+                            isLEDTaskRunning = true;
+	                        xTaskCreate(&LED_task, "LED task", 1024*4, NULL, 3, &TaskHandler_LED);      
 
-                            break;
-                        case 5:
-
-                            break;
-                        case 6:
-
-                            break;
-                        case 7:
-                            printf("\nEXIT\n");
+                            // lcdFillScreen(&dev, BLACK);
                             break;
                         default:
                             break;
                         }
+                        
                         if(option_counting_2 == 4){
                             option_counting_2 = 1;
                             break;
                         }
-
                     }
                 }
-                
-
-                // vTaskDelay(pdMS_TO_TICKS(2000));
-
-                //handler 
                 lcdFillScreen(&dev, BLACK);
                 break;
             case 3:
@@ -576,7 +747,8 @@ static void Option1Display(ST7735_t * const dev, const FontxFile * const fx, con
 
 }
 
-static void RED1Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
+
+static void SubRED1Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
 {
     lcdSetFontDirection(dev, DIRECTION270);
     static uint8_t ascii[30];
@@ -592,8 +764,18 @@ static void RED1Display(ST7735_t * const dev, const FontxFile * const fx, const 
         (const uint8_t*)"     BACK    ",
 
     };
-    const uint16_t colors[] = {BLACK, WHITE, WHITE, WHITE};
-    const uint16_t bgColors[] = {WHITE, BLACK, BLACK, BLACK};
+    uint16_t colors[] = {BLACK, WHITE, WHITE, WHITE};
+    uint16_t bgColors[] = {WHITE, BLACK, BLACK, BLACK};
+    if(isRED1on){
+        colors[0] = WHITE;
+        bgColors[0] = RED;
+    }else if(isGREEN1on){
+        colors[1] = BLACK;
+        bgColors[1] = GREEN;
+    }else if(isYELLOW1on){
+        colors[2] = BLACK;
+        bgColors[2] = YELLOW;
+    }
     const int offsets[] = {30, 50, 70, 90};
     const int captionXOffsets[] = {45, 65, 85, 105};
 
@@ -609,7 +791,224 @@ static void RED1Display(ST7735_t * const dev, const FontxFile * const fx, const 
     }
 }
 
+static void SubRED2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
+{
+    lcdSetFontDirection(dev, DIRECTION270);
+    static uint8_t ascii[30];
+    strcpy((char*)ascii, "   Manual Adjust    ");
+    lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+    lcdDrawLine(dev, 15, 160, 15, 0, WHITE);
 
+    const uint8_t fontHeight = getFortHeight(fx);
+    const uint8_t* const captions[] = {
+        (const uint8_t*)" RED PHASE 2 ",
+        (const uint8_t*)"GREEN PHASE 2",
+        (const uint8_t*)"YELLOW PHASE 2",
+        (const uint8_t*)"     BACK    ",
+
+    };
+    uint16_t colors[] = {BLACK, WHITE, WHITE, WHITE};
+    uint16_t bgColors[] = {WHITE, BLACK, BLACK, BLACK};
+    if(isRED2on){
+        colors[0] = WHITE;
+        bgColors[0] = RED;
+    }else if(isGREEN2on){
+        colors[1] = BLACK;
+        bgColors[1] = GREEN;
+    }else if(isYELLOW2on){
+        colors[2] = BLACK;
+        bgColors[2] = YELLOW;
+    }
+    const int offsets[] = {30, 50, 70, 90};
+    const int captionXOffsets[] = {45, 65, 85, 105};
+
+    const int numCaptions = sizeof(captions) / sizeof(captions[0]);
+    for (int i = 0; i < numCaptions; ++i) {
+        const uint8_t* const caption = captions[i];
+        const uint16_t color = colors[i];
+        const uint16_t bgColor = bgColors[i];
+        const int offset = offsets[i];
+        const int captionXOffset = captionXOffsets[i];
+        lcdDrawFillRect(dev, offset, 20, offset + fontHeight, 140, bgColor);
+        lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+    }
+}
+
+static void SubGREEN1Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
+{
+    lcdSetFontDirection(dev, DIRECTION270);
+    static uint8_t ascii[30];
+    strcpy((char*)ascii, "   Manual Adjust    ");
+    lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+    lcdDrawLine(dev, 15, 160, 15, 0, WHITE);
+
+    const uint8_t fontHeight = getFortHeight(fx);
+    const uint8_t* const captions[] = {
+        (const uint8_t*)" RED PHASE 1 ",
+        (const uint8_t*)"GREEN PHASE 1",
+        (const uint8_t*)"YELLOW PHASE 1",
+        (const uint8_t*)"     BACK    ",
+
+    };
+    uint16_t colors[] = {WHITE, BLACK, WHITE, WHITE};
+    uint16_t bgColors[] = {BLACK, WHITE, BLACK, BLACK};
+    if(isRED1on){
+        colors[0] = WHITE;
+        bgColors[0] = RED;
+    }else if(isGREEN1on){
+        colors[1] = BLACK;
+        bgColors[1] = GREEN;
+    }else if(isYELLOW1on){
+        colors[2] = BLACK;
+        bgColors[2] = YELLOW;
+    }
+
+    const int offsets[] = {30, 50, 70, 90};
+    const int captionXOffsets[] = {45, 65, 85, 105};
+
+    const int numCaptions = sizeof(captions) / sizeof(captions[0]);
+    for (int i = 0; i < numCaptions; ++i) {
+        const uint8_t* const caption = captions[i];
+        const uint16_t color = colors[i];
+        const uint16_t bgColor = bgColors[i];
+        const int offset = offsets[i];
+        const int captionXOffset = captionXOffsets[i];
+        lcdDrawFillRect(dev, offset, 20, offset + fontHeight, 140, bgColor);
+        lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+    }
+}
+
+static void SubGREEN2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
+{
+    lcdSetFontDirection(dev, DIRECTION270);
+    static uint8_t ascii[30];
+    strcpy((char*)ascii, "   Manual Adjust    ");
+    lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+    lcdDrawLine(dev, 15, 160, 15, 0, WHITE);
+
+    const uint8_t fontHeight = getFortHeight(fx);
+    const uint8_t* const captions[] = {
+        (const uint8_t*)" RED PHASE 2 ",
+        (const uint8_t*)"GREEN PHASE 2",
+        (const uint8_t*)"YELLOW PHASE 2",
+        (const uint8_t*)"     BACK    ",
+
+    };
+    uint16_t colors[] = {WHITE, BLACK, WHITE, WHITE};
+    uint16_t bgColors[] = {BLACK, WHITE, BLACK, BLACK};
+    if(isRED2on){
+        colors[0] = WHITE;
+        bgColors[0] = RED;
+    }else if(isGREEN2on){
+        colors[1] = BLACK;
+        bgColors[1] = GREEN;
+    }else if(isYELLOW2on){
+        colors[2] = BLACK;
+        bgColors[2] = YELLOW;
+    }
+
+    const int offsets[] = {30, 50, 70, 90};
+    const int captionXOffsets[] = {45, 65, 85, 105};
+
+    const int numCaptions = sizeof(captions) / sizeof(captions[0]);
+    for (int i = 0; i < numCaptions; ++i) {
+        const uint8_t* const caption = captions[i];
+        const uint16_t color = colors[i];
+        const uint16_t bgColor = bgColors[i];
+        const int offset = offsets[i];
+        const int captionXOffset = captionXOffsets[i];
+        lcdDrawFillRect(dev, offset, 20, offset + fontHeight, 140, bgColor);
+        lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+    }
+}
+
+static void SubYELLOW1Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
+{
+    lcdSetFontDirection(dev, DIRECTION270);
+    static uint8_t ascii[30];
+    strcpy((char*)ascii, "   Manual Adjust    ");
+    lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+    lcdDrawLine(dev, 15, 160, 15, 0, WHITE);
+
+    const uint8_t fontHeight = getFortHeight(fx);
+    const uint8_t* const captions[] = {
+        (const uint8_t*)" RED PHASE 1 ",
+        (const uint8_t*)"GREEN PHASE 1",
+        (const uint8_t*)"YELLOW PHASE 1",
+        (const uint8_t*)"     BACK    ",
+
+    };
+    uint16_t colors[] = {WHITE, WHITE, BLACK, WHITE};
+    uint16_t bgColors[] = {BLACK, BLACK, WHITE, BLACK};
+    if(isRED1on){
+        colors[0] = WHITE;
+        bgColors[0] = RED;
+    }else if(isGREEN1on){
+        colors[1] = BLACK;
+        bgColors[1] = GREEN;
+    }else if(isYELLOW1on){
+        colors[2] = BLACK;
+        bgColors[2] = YELLOW;
+    }
+
+    const int offsets[] = {30, 50, 70, 90};
+    const int captionXOffsets[] = {45, 65, 85, 105};
+
+    const int numCaptions = sizeof(captions) / sizeof(captions[0]);
+    for (int i = 0; i < numCaptions; ++i) {
+        const uint8_t* const caption = captions[i];
+        const uint16_t color = colors[i];
+        const uint16_t bgColor = bgColors[i];
+        const int offset = offsets[i];
+        const int captionXOffset = captionXOffsets[i];
+        lcdDrawFillRect(dev, offset, 20, offset + fontHeight, 140, bgColor);
+        lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+    }
+}
+
+static void SubYELLOW2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
+{
+    lcdSetFontDirection(dev, DIRECTION270);
+    static uint8_t ascii[30];
+    strcpy((char*)ascii, "   Manual Adjust    ");
+    lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+    lcdDrawLine(dev, 15, 160, 15, 0, WHITE);
+
+    const uint8_t fontHeight = getFortHeight(fx);
+    const uint8_t* const captions[] = {
+        (const uint8_t*)" RED PHASE 2 ",
+        (const uint8_t*)"GREEN PHASE 2",
+        (const uint8_t*)"YELLOW PHASE 2",
+        (const uint8_t*)"     BACK    ",
+
+    };
+    uint16_t colors[] = {WHITE, WHITE, BLACK, WHITE};
+    uint16_t bgColors[] = {BLACK, BLACK, WHITE, BLACK};
+    if(isRED2on){
+        colors[0] = WHITE;
+        bgColors[0] = RED;
+    }else if(isGREEN2on){
+        colors[1] = BLACK;
+        bgColors[1] = GREEN;
+    }else if(isYELLOW2on){
+        colors[2] = BLACK;
+        bgColors[2] = YELLOW;
+    }
+
+    const int offsets[] = {30, 50, 70, 90};
+    const int captionXOffsets[] = {45, 65, 85, 105};
+
+    const int numCaptions = sizeof(captions) / sizeof(captions[0]);
+    for (int i = 0; i < numCaptions; ++i) {
+        const uint8_t* const caption = captions[i];
+        const uint16_t color = colors[i];
+        const uint16_t bgColor = bgColors[i];
+        const int offset = offsets[i];
+        const int captionXOffset = captionXOffsets[i];
+        lcdDrawFillRect(dev, offset, 20, offset + fontHeight, 140, bgColor);
+        lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+    }
+}
 
 static void PHASE1Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
 {
@@ -709,75 +1108,6 @@ static void SAVEDisplay(ST7735_t * const dev, const FontxFile * const fx, const 
     }
 }
 
-
-
-static void GREEN1Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
-{
-    lcdSetFontDirection(dev, DIRECTION270);
-    static uint8_t ascii[30];
-    strcpy((char*)ascii, "   Manual Adjust    ");
-    lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
-    lcdDrawLine(dev, 15, 160, 15, 0, WHITE);
-
-    const uint8_t fontHeight = getFortHeight(fx);
-    const uint8_t* const captions[] = {
-        (const uint8_t*)" RED PHASE 1 ",
-        (const uint8_t*)"GREEN PHASE 1",
-        (const uint8_t*)"YELLOW PHASE 1",
-        (const uint8_t*)"     BACK    ",
-
-    };
-    const uint16_t colors[] = {WHITE, BLACK, WHITE, WHITE};
-    const uint16_t bgColors[] = {BLACK, WHITE, BLACK, BLACK};
-    const int offsets[] = {30, 50, 70, 90};
-    const int captionXOffsets[] = {45, 65, 85, 105};
-
-    const int numCaptions = sizeof(captions) / sizeof(captions[0]);
-    for (int i = 0; i < numCaptions; ++i) {
-        const uint8_t* const caption = captions[i];
-        const uint16_t color = colors[i];
-        const uint16_t bgColor = bgColors[i];
-        const int offset = offsets[i];
-        const int captionXOffset = captionXOffsets[i];
-        lcdDrawFillRect(dev, offset, 20, offset + fontHeight, 140, bgColor);
-        lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
-    }
-}
-
-static void YELLOW1Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
-{
-    lcdSetFontDirection(dev, DIRECTION270);
-    static uint8_t ascii[30];
-    strcpy((char*)ascii, "   Manual Adjust    ");
-    lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
-    lcdDrawLine(dev, 15, 160, 15, 0, WHITE);
-
-    const uint8_t fontHeight = getFortHeight(fx);
-    const uint8_t* const captions[] = {
-        (const uint8_t*)" RED PHASE 1 ",
-        (const uint8_t*)"GREEN PHASE 1",
-        (const uint8_t*)"YELLOW PHASE 1",
-        (const uint8_t*)"     BACK    ",
-
-    };
-    const uint16_t colors[] = {WHITE, WHITE, BLACK, WHITE};
-    const uint16_t bgColors[] = {BLACK, BLACK, WHITE, BLACK};
-    const int offsets[] = {30, 50, 70, 90};
-    const int captionXOffsets[] = {45, 65, 85, 105};
-
-    const int numCaptions = sizeof(captions) / sizeof(captions[0]);
-    for (int i = 0; i < numCaptions; ++i) {
-        const uint8_t* const caption = captions[i];
-        const uint16_t color = colors[i];
-        const uint16_t bgColor = bgColors[i];
-        const int offset = offsets[i];
-        const int captionXOffset = captionXOffsets[i];
-        lcdDrawFillRect(dev, offset, 20, offset + fontHeight, 140, bgColor);
-        lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
-    }
-}
-
-
 static void BACKDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
 {
     lcdSetFontDirection(dev, DIRECTION270);
@@ -794,8 +1124,18 @@ static void BACKDisplay(ST7735_t * const dev, const FontxFile * const fx, const 
         (const uint8_t*)"     BACK    ",
 
     };
-    const uint16_t colors[] = {WHITE, WHITE, WHITE, BLACK};
-    const uint16_t bgColors[] = {BLACK, BLACK, BLACK, WHITE};
+    uint16_t colors[] = {WHITE, WHITE, WHITE, BLACK};
+    uint16_t bgColors[] = {BLACK, BLACK, BLACK, WHITE};
+    if(isRED1on){
+        colors[0] = WHITE;
+        bgColors[0] = RED;
+    }else if(isGREEN1on){
+        colors[1] = BLACK;
+        bgColors[1] = GREEN;
+    }else if(isYELLOW1on){
+        colors[2] = BLACK;
+        bgColors[2] = YELLOW;
+    }
     const int offsets[] = {30, 50, 70, 90};
     const int captionXOffsets[] = {45, 65, 85, 105};
 
@@ -811,7 +1151,8 @@ static void BACKDisplay(ST7735_t * const dev, const FontxFile * const fx, const 
     }
 }
 
-static void RED2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
+
+static void BACK2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
 {
     lcdSetFontDirection(dev, DIRECTION270);
     static uint8_t ascii[30];
@@ -821,14 +1162,24 @@ static void RED2Display(ST7735_t * const dev, const FontxFile * const fx, const 
 
     const uint8_t fontHeight = getFortHeight(fx);
     const uint8_t* const captions[] = {
-        (const uint8_t*)" Red Phase 2 ",
-        (const uint8_t*)"Green Phase 2",
-        (const uint8_t*)"Yellow Phase 2",
-        (const uint8_t*)"     EXIT     ",
+        (const uint8_t*)" RED PHASE 2 ",
+        (const uint8_t*)"GREEN PHASE 2",
+        (const uint8_t*)"YELLOW PHASE 2",
+        (const uint8_t*)"     BACK    ",
 
     };
-    const uint16_t colors[] = {BLACK, WHITE, WHITE, WHITE};
-    const uint16_t bgColors[] = {WHITE, BLACK, BLACK, BLACK};
+    uint16_t colors[] = {WHITE, WHITE, WHITE, BLACK};
+    uint16_t bgColors[] = {BLACK, BLACK, BLACK, WHITE};
+    if(isRED2on){
+        colors[0] = WHITE;
+        bgColors[0] = RED;
+    }else if(isGREEN2on){
+        colors[1] = BLACK;
+        bgColors[1] = GREEN;
+    }else if(isYELLOW2on){
+        colors[2] = BLACK;
+        bgColors[2] = YELLOW;
+    }
     const int offsets[] = {30, 50, 70, 90};
     const int captionXOffsets[] = {45, 65, 85, 105};
 
@@ -844,71 +1195,6 @@ static void RED2Display(ST7735_t * const dev, const FontxFile * const fx, const 
     }
 }
 
-static void GREEN2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
-{
-    lcdSetFontDirection(dev, DIRECTION270);
-    static uint8_t ascii[30];
-    strcpy((char*)ascii, "   Manual Adjust    ");
-    lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
-    lcdDrawLine(dev, 15, 160, 15, 0, WHITE);
-
-    const uint8_t fontHeight = getFortHeight(fx);
-    const uint8_t* const captions[] = {
-        (const uint8_t*)" Red Phase 2 ",
-        (const uint8_t*)"Green Phase 2",
-        (const uint8_t*)"Yellow Phase 2",
-        (const uint8_t*)"     EXIT     ",
-
-    };
-    const uint16_t colors[] = {WHITE, BLACK, WHITE, WHITE};
-    const uint16_t bgColors[] = {BLACK, WHITE, BLACK, BLACK};
-    const int offsets[] = {30, 50, 70, 90};
-    const int captionXOffsets[] = {45, 65, 85, 105};
-
-    const int numCaptions = sizeof(captions) / sizeof(captions[0]);
-    for (int i = 0; i < numCaptions; ++i) {
-        const uint8_t* const caption = captions[i];
-        const uint16_t color = colors[i];
-        const uint16_t bgColor = bgColors[i];
-        const int offset = offsets[i];
-        const int captionXOffset = captionXOffsets[i];
-        lcdDrawFillRect(dev, offset, 20, offset + fontHeight, 140, bgColor);
-        lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
-    }
-}
-
-static void YELLOW2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
-{
-    lcdSetFontDirection(dev, DIRECTION270);
-    static uint8_t ascii[30];
-    strcpy((char*)ascii, "   Manual Adjust    ");
-    lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
-    lcdDrawLine(dev, 15, 160, 15, 0, WHITE);
-
-    const uint8_t fontHeight = getFortHeight(fx);
-    const uint8_t* const captions[] = {
-        (const uint8_t*)" Red Phase 2 ",
-        (const uint8_t*)"Green Phase 2",
-        (const uint8_t*)"Yellow Phase 2",
-        (const uint8_t*)"     EXIT     ",
-
-    };
-    const uint16_t colors[] = {WHITE, WHITE, BLACK, WHITE};
-    const uint16_t bgColors[] = {BLACK, BLACK, WHITE, BLACK};
-    const int offsets[] = {30, 50, 70, 90};
-    const int captionXOffsets[] = {45, 65, 85, 105};
-
-    const int numCaptions = sizeof(captions) / sizeof(captions[0]);
-    for (int i = 0; i < numCaptions; ++i) {
-        const uint8_t* const caption = captions[i];
-        const uint16_t color = colors[i];
-        const uint16_t bgColor = bgColors[i];
-        const int offset = offsets[i];
-        const int captionXOffset = captionXOffsets[i];
-        lcdDrawFillRect(dev, offset, 20, offset + fontHeight, 140, bgColor);
-        lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
-    }
-}
 static void EXITDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
 {
     lcdSetFontDirection(dev, DIRECTION270);

@@ -7,5 +7,4 @@
     !MR = VCC
     ST_CP (latch clock) = 17
     SH_CP (shift clock) = 16
-    !MR: no 
     !Q7: no
