@@ -84,7 +84,7 @@ bool isYELLOW1on = false;
 bool isRED2on = false; 
 bool isGREEN2on = false; 
 bool isYELLOW2on = false;
-
+bool isInSlowMode = false;
 bool isLEDTaskRunning = true;
 
 static void uart_event_task(void *);
@@ -109,6 +109,7 @@ static void SubRED2Display(ST7735_t * const dev, const FontxFile * const fx, con
 static void SubGREEN2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void SubYELLOW2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void BACK2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
+static void SlowModeDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 
 static void SetTimeLightDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void SavedDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height, int idx);
@@ -651,6 +652,28 @@ static void screen_task(void *pvParameters)
                 lcdFillScreen(&dev, BLACK);
                 break;
             case 3:
+                lcdFillScreen(&dev, BLACK);
+                SlowModeDisplay(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
+                while (1){
+                    gpio_set_level(LED_YELLOW_PHASE_1, 1);
+                    gpio_set_level(LED_YELLOW_PHASE_2, 1);
+                    gpio_set_level(LED_RED_PHASE_1, 0);
+                    gpio_set_level(LED_RED_PHASE_2, 0);
+                    gpio_set_level(LED_GREEN_PHASE_1, 0);
+                    gpio_set_level(LED_GREEN_PHASE_2, 0);                    
+                    write4Byte74HC595(&IC74HC595, LED7Seg[88/10], LED7Seg[88%10], LED7Seg[88/10], LED7Seg[88%10]);                    
+                    if(DetectButton() == BUTTON_ENTER) {
+                        if(isLEDTaskRunning){
+                            vTaskDelete(TaskHandler_LED);
+                            isLEDTaskRunning = false;
+                        }
+                        LEDAllOff();
+                        isLEDTaskRunning = true;
+	                    xTaskCreate(&LED_task, "LED task", 1024*4, NULL, 3, &TaskHandler_LED);          
+                        break;                
+                    }
+                }
+
                 //handler
                 lcdFillScreen(&dev, BLACK);
                 break;
@@ -1042,6 +1065,8 @@ static void PHASE1Display(ST7735_t * const dev, const FontxFile * const fx, cons
         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
     }
 }
+
+
 static void PHASE2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
 {
     lcdSetFontDirection(dev, DIRECTION270);
@@ -1470,4 +1495,17 @@ static void  LEDAllOff()
     gpio_set_level(LED_GREEN_PHASE_2, 0);
     gpio_set_level(LED_YELLOW_PHASE_1, 0);
     gpio_set_level(LED_YELLOW_PHASE_2, 0);
+}
+
+static void SlowModeDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
+{
+    lcdSetFontDirection(dev, DIRECTION270);
+    static uint8_t ascii[30];
+    // strcpy((char*)ascii, "   Manual Adjust    ");
+    strcpy((char*)ascii, "      Slow Mode     ");
+
+    lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+    lcdDrawLine(dev, 15, 160, 15, 0, WHITE);
+    strcpy((char*)ascii, "    SLOW     ");
+    lcdDrawString(dev, fx, 80, 130, ascii, YELLOW);
 }
