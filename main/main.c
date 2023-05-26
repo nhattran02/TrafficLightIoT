@@ -110,13 +110,11 @@ static void SubGREEN2Display(ST7735_t * const dev, const FontxFile * const fx, c
 static void SubYELLOW2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void BACK2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void SlowModeDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
-
 static void SetTimeLightDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void SavedDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height, int idx);
 static void Init_Hardware(void);
 static void OptionSelect(ST7735_t * , FontxFile *, int , int , int );
 static void ManualAdjOptionSelect(ST7735_t * , FontxFile *, int , int , int );
-
 static int  DetectButton();
 static void LEDAllOff();
 
@@ -127,8 +125,7 @@ void app_main(void)
 
 	xTaskCreate(&screen_task, "TFT Screen", 1024*4, NULL, 3, NULL);
 	xTaskCreate(&LED_task, "LED task", 1024*4, NULL, 3, &TaskHandler_LED);      
-
-	//xTaskCreate(&uart_event_task, "UART Task", 4096, NULL, 2, NULL);
+    // xTaskCreate(&uart_event_task, "UART Task", 4096, NULL, 2, &TaskHandler_uart);
 }
 
 static void LED_task(void *pvParameters)
@@ -271,12 +268,12 @@ static void uart_event_task(void *pvParameters)
     char* dtmp = (char*) malloc(RD_BUF_SIZE);
     while(1) {
         //Waiting for UART event.
-        printf("\n----------CONTROLL TRAFFIC LIGHT VIA TERMINAL----------\n");
+        printf("\n---CONTROL TRAFFIC LIGHT VIA TERMINAL---\n");
         printf("1. Set TimeLight:     !SETTIME! \n");
         printf("2. Manual Adjust:     !ADJ! \n");
         printf("3. Slow Mode:         !SLOW! \n");
         printf("4. Show Current Time: !SHOW! \n");
-
+        printf("Enter your command: \n");
         if(xQueueReceive(uart0_queue, (void * )&event, (TickType_t)portMAX_DELAY)) {
             bzero(dtmp, RD_BUF_SIZE);
             //if(event.data)
@@ -285,7 +282,15 @@ static void uart_event_task(void *pvParameters)
                     uart_read_bytes(EX_UART_NUM, dtmp, event.size, portMAX_DELAY);
                     printf("%s", dtmp);
                     if(strncmp(dtmp, "!SETTIME!", strlen("!SETTIME!"))==0){
-                        gpio_set_level(LED, 1);
+                        printf("------------SET TIME------------\n");
+                        printf("To set time using the command: !PHASE<x>_G1=<num1>_Y1=<num2>!\n");
+                        printf("Example: Phase 1 have G1 = 3 and Y1 = 7 -> !PHASE1_G1=3_Y1=7!\n");
+                        printf("Enter your command: \n");
+                        while (1)
+                        {
+                            vTaskDelay(10/portTICK_PERIOD_MS);
+                        }
+                        
 
                     }else if(strncmp(dtmp, "!ADJ!", strlen("!ADJ!"))==0){
                         gpio_set_level(LED, 0);
@@ -677,8 +682,13 @@ static void screen_task(void *pvParameters)
                 //handler
                 lcdFillScreen(&dev, BLACK);
                 break;
-            case 4:
-                //handler
+            case 4: //terminal
+                lcdFillScreen(&dev, BLACK);
+                xTaskCreate(&uart_event_task, "UART Task", 4096, NULL, 2, &TaskHandler_uart);
+                
+                while(1){
+                    vTaskDelay(10/portTICK_PERIOD_MS);
+                }   
                 lcdFillScreen(&dev, BLACK);
                 break;
             default:
