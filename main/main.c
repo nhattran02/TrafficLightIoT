@@ -339,7 +339,7 @@ static void Init_Hardware(void)
         .source_clk = UART_SCLK_DEFAULT,
     });
     uart_set_pin(EX_UART_NUM, 1, 3, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-    //spiff config 
+    //spiff config _
 	esp_vfs_spiffs_conf_t conf = {
 		.base_path = "/spiffs",
 		.partition_label = NULL,
