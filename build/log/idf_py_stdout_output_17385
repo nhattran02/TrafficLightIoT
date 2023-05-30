@@ -1,0 +1,845 @@
+[1/10] Performing build step for 'bootloader'
+[1/1] cd /home/minhnhat/esp/workspace/TrafficLightIoT/build/bootloader/esp-idf/esptool_py && /home/minhnhat/.espressif/python_env/idf5.1_py3.8_env/bin/python /home/minhnhat/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x1000 /home/minhnhat/esp/workspace/TrafficLightIoT/build/bootloader/bootloader.bin
+Bootloader binary size 0x6730 bytes. 0x8d0 bytes (8%) free.
+[2/8] cd /home/minhnhat/esp/workspace/TrafficLightIoT/build && /home/minhnhat/.espressif/python_env/idf5.1_py3.8_env/bin/python /home/minhnhat/esp/esp-idf/components/spiffs/spiffsgen.py 0xf0000 /home/minhnhat/esp/workspace/TrafficLightIoT/font /home/minhnhat/esp/workspace/TrafficLightIoT/build/storage.bin --page-size=256 --obj-name-len=32 --meta-len=4 --use-magic --use-magic-len
+[3/8] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/main.c.obj
+../main/main.c: In function 'uart_event_task':
+../main/main.c:277:12: warning: unused variable 'buffered_size' [-Wunused-variable]
+  277 |     size_t buffered_size;
+      |            ^~~~~~~~~~~~~
+../main/main.c: In function 'IntroDisplay':
+../main/main.c:897:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+  897 |         lcdDrawString(dev, fx, x[i], y[i], (uint8_t*)strings[i], colors[i]);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:903:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+  903 |         lcdDrawString(dev, fx, 70, 150, (uint8_t*)str[i], colors[i]);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c: In function 'SavedDisplay':
+../main/main.c:929:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+  929 |     lcdDrawString(dev, fx, 75, 130, (uint8_t*)string, WHITE);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c: In function 'Option1Display':
+../main/main.c:938:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+  938 |     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:941:46: warning: passing argument 1 of 'getFortHeight' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+  941 |     const uint8_t fontHeight = getFortHeight(fx);
+      |                                              ^~
+In file included from ../main/st7735s.h:4,
+                 from ../main/main.c:21:
+../main/fontx.h:24:34: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   24 | uint8_t getFortHeight(FontxFile *fx);
+      |                       ~~~~~~~~~~~^~
+../main/main.c:961:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+  961 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:961:53: warning: passing argument 5 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+  961 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                                                     ^~~~~~~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:84: note: expected 'uint8_t *' {aka 'unsigned char *'} but argument is of type 'const uint8_t *' {aka 'const unsigned char *'}
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                                                          ~~~~~~~~~~^~~~~
+../main/main.c: In function 'SubRED1Display':
+../main/main.c:972:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+  972 |     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:975:46: warning: passing argument 1 of 'getFortHeight' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+  975 |     const uint8_t fontHeight = getFortHeight(fx);
+      |                                              ^~
+In file included from ../main/st7735s.h:4,
+                 from ../main/main.c:21:
+../main/fontx.h:24:34: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   24 | uint8_t getFortHeight(FontxFile *fx);
+      |                       ~~~~~~~~~~~^~
+../main/main.c:1006:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1006 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1006:53: warning: passing argument 5 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1006 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                                                     ^~~~~~~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:84: note: expected 'uint8_t *' {aka 'unsigned char *'} but argument is of type 'const uint8_t *' {aka 'const unsigned char *'}
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                                                          ~~~~~~~~~~^~~~~
+../main/main.c: In function 'SubRED2Display':
+../main/main.c:1015:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1015 |     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1018:46: warning: passing argument 1 of 'getFortHeight' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1018 |     const uint8_t fontHeight = getFortHeight(fx);
+      |                                              ^~
+In file included from ../main/st7735s.h:4,
+                 from ../main/main.c:21:
+../main/fontx.h:24:34: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   24 | uint8_t getFortHeight(FontxFile *fx);
+      |                       ~~~~~~~~~~~^~
+../main/main.c:1049:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1049 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1049:53: warning: passing argument 5 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1049 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                                                     ^~~~~~~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:84: note: expected 'uint8_t *' {aka 'unsigned char *'} but argument is of type 'const uint8_t *' {aka 'const unsigned char *'}
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                                                          ~~~~~~~~~~^~~~~
+../main/main.c: In function 'SubGREEN1Display':
+../main/main.c:1058:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1058 |     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1061:46: warning: passing argument 1 of 'getFortHeight' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1061 |     const uint8_t fontHeight = getFortHeight(fx);
+      |                                              ^~
+In file included from ../main/st7735s.h:4,
+                 from ../main/main.c:21:
+../main/fontx.h:24:34: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   24 | uint8_t getFortHeight(FontxFile *fx);
+      |                       ~~~~~~~~~~~^~
+../main/main.c:1093:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1093 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1093:53: warning: passing argument 5 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1093 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                                                     ^~~~~~~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:84: note: expected 'uint8_t *' {aka 'unsigned char *'} but argument is of type 'const uint8_t *' {aka 'const unsigned char *'}
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                                                          ~~~~~~~~~~^~~~~
+../main/main.c: In function 'SubGREEN2Display':
+../main/main.c:1102:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1102 |     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1105:46: warning: passing argument 1 of 'getFortHeight' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1105 |     const uint8_t fontHeight = getFortHeight(fx);
+      |                                              ^~
+In file included from ../main/st7735s.h:4,
+                 from ../main/main.c:21:
+../main/fontx.h:24:34: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   24 | uint8_t getFortHeight(FontxFile *fx);
+      |                       ~~~~~~~~~~~^~
+../main/main.c:1137:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1137 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1137:53: warning: passing argument 5 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1137 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                                                     ^~~~~~~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:84: note: expected 'uint8_t *' {aka 'unsigned char *'} but argument is of type 'const uint8_t *' {aka 'const unsigned char *'}
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                                                          ~~~~~~~~~~^~~~~
+../main/main.c: In function 'SubYELLOW1Display':
+../main/main.c:1146:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1146 |     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1149:46: warning: passing argument 1 of 'getFortHeight' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1149 |     const uint8_t fontHeight = getFortHeight(fx);
+      |                                              ^~
+In file included from ../main/st7735s.h:4,
+                 from ../main/main.c:21:
+../main/fontx.h:24:34: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   24 | uint8_t getFortHeight(FontxFile *fx);
+      |                       ~~~~~~~~~~~^~
+../main/main.c:1181:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1181 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1181:53: warning: passing argument 5 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1181 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                                                     ^~~~~~~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:84: note: expected 'uint8_t *' {aka 'unsigned char *'} but argument is of type 'const uint8_t *' {aka 'const unsigned char *'}
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                                                          ~~~~~~~~~~^~~~~
+../main/main.c: In function 'SubYELLOW2Display':
+../main/main.c:1190:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1190 |     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1193:46: warning: passing argument 1 of 'getFortHeight' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1193 |     const uint8_t fontHeight = getFortHeight(fx);
+      |                                              ^~
+In file included from ../main/st7735s.h:4,
+                 from ../main/main.c:21:
+../main/fontx.h:24:34: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   24 | uint8_t getFortHeight(FontxFile *fx);
+      |                       ~~~~~~~~~~~^~
+../main/main.c:1225:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1225 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1225:53: warning: passing argument 5 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1225 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                                                     ^~~~~~~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:84: note: expected 'uint8_t *' {aka 'unsigned char *'} but argument is of type 'const uint8_t *' {aka 'const unsigned char *'}
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                                                          ~~~~~~~~~~^~~~~
+../main/main.c: In function 'PHASE1Display':
+../main/main.c:1234:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1234 |     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1237:46: warning: passing argument 1 of 'getFortHeight' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1237 |     const uint8_t fontHeight = getFortHeight(fx);
+      |                                              ^~
+In file included from ../main/st7735s.h:4,
+                 from ../main/main.c:21:
+../main/fontx.h:24:34: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   24 | uint8_t getFortHeight(FontxFile *fx);
+      |                       ~~~~~~~~~~~^~
+../main/main.c:1258:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1258 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1258:53: warning: passing argument 5 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1258 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                                                     ^~~~~~~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:84: note: expected 'uint8_t *' {aka 'unsigned char *'} but argument is of type 'const uint8_t *' {aka 'const unsigned char *'}
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                                                          ~~~~~~~~~~^~~~~
+../main/main.c: In function 'PHASE2Display':
+../main/main.c:1268:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1268 |     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1271:46: warning: passing argument 1 of 'getFortHeight' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1271 |     const uint8_t fontHeight = getFortHeight(fx);
+      |                                              ^~
+In file included from ../main/st7735s.h:4,
+                 from ../main/main.c:21:
+../main/fontx.h:24:34: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   24 | uint8_t getFortHeight(FontxFile *fx);
+      |                       ~~~~~~~~~~~^~
+../main/main.c:1292:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1292 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1292:53: warning: passing argument 5 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1292 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                                                     ^~~~~~~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:84: note: expected 'uint8_t *' {aka 'unsigned char *'} but argument is of type 'const uint8_t *' {aka 'const unsigned char *'}
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                                                          ~~~~~~~~~~^~~~~
+../main/main.c: In function 'SAVEDisplay':
+../main/main.c:1301:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1301 |     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1304:46: warning: passing argument 1 of 'getFortHeight' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1304 |     const uint8_t fontHeight = getFortHeight(fx);
+      |                                              ^~
+In file included from ../main/st7735s.h:4,
+                 from ../main/main.c:21:
+../main/fontx.h:24:34: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   24 | uint8_t getFortHeight(FontxFile *fx);
+      |                       ~~~~~~~~~~~^~
+../main/main.c:1325:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1325 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1325:53: warning: passing argument 5 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1325 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                                                     ^~~~~~~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:84: note: expected 'uint8_t *' {aka 'unsigned char *'} but argument is of type 'const uint8_t *' {aka 'const unsigned char *'}
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                                                          ~~~~~~~~~~^~~~~
+../main/main.c: In function 'BACKDisplay':
+../main/main.c:1334:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1334 |     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1337:46: warning: passing argument 1 of 'getFortHeight' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1337 |     const uint8_t fontHeight = getFortHeight(fx);
+      |                                              ^~
+In file included from ../main/st7735s.h:4,
+                 from ../main/main.c:21:
+../main/fontx.h:24:34: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   24 | uint8_t getFortHeight(FontxFile *fx);
+      |                       ~~~~~~~~~~~^~
+../main/main.c:1368:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1368 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1368:53: warning: passing argument 5 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1368 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                                                     ^~~~~~~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:84: note: expected 'uint8_t *' {aka 'unsigned char *'} but argument is of type 'const uint8_t *' {aka 'const unsigned char *'}
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                                                          ~~~~~~~~~~^~~~~
+../main/main.c: In function 'BACK2Display':
+../main/main.c:1378:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1378 |     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1381:46: warning: passing argument 1 of 'getFortHeight' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1381 |     const uint8_t fontHeight = getFortHeight(fx);
+      |                                              ^~
+In file included from ../main/st7735s.h:4,
+                 from ../main/main.c:21:
+../main/fontx.h:24:34: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   24 | uint8_t getFortHeight(FontxFile *fx);
+      |                       ~~~~~~~~~~~^~
+../main/main.c:1412:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1412 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1412:53: warning: passing argument 5 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1412 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                                                     ^~~~~~~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:84: note: expected 'uint8_t *' {aka 'unsigned char *'} but argument is of type 'const uint8_t *' {aka 'const unsigned char *'}
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                                                          ~~~~~~~~~~^~~~~
+../main/main.c: In function 'EXITDisplay':
+../main/main.c:1421:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1421 |     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1424:46: warning: passing argument 1 of 'getFortHeight' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1424 |     const uint8_t fontHeight = getFortHeight(fx);
+      |                                              ^~
+In file included from ../main/st7735s.h:4,
+                 from ../main/main.c:21:
+../main/fontx.h:24:34: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   24 | uint8_t getFortHeight(FontxFile *fx);
+      |                       ~~~~~~~~~~~^~
+../main/main.c:1445:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1445 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1445:53: warning: passing argument 5 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1445 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                                                     ^~~~~~~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:84: note: expected 'uint8_t *' {aka 'unsigned char *'} but argument is of type 'const uint8_t *' {aka 'const unsigned char *'}
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                                                          ~~~~~~~~~~^~~~~
+../main/main.c: In function 'Option2Display':
+../main/main.c:1454:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1454 |     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1457:46: warning: passing argument 1 of 'getFortHeight' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1457 |     const uint8_t fontHeight = getFortHeight(fx);
+      |                                              ^~
+In file included from ../main/st7735s.h:4,
+                 from ../main/main.c:21:
+../main/fontx.h:24:34: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   24 | uint8_t getFortHeight(FontxFile *fx);
+      |                       ~~~~~~~~~~~^~
+../main/main.c:1477:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1477 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1477:53: warning: passing argument 5 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1477 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                                                     ^~~~~~~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:84: note: expected 'uint8_t *' {aka 'unsigned char *'} but argument is of type 'const uint8_t *' {aka 'const unsigned char *'}
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                                                          ~~~~~~~~~~^~~~~
+../main/main.c: In function 'Option3Display':
+../main/main.c:1486:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1486 |     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1489:46: warning: passing argument 1 of 'getFortHeight' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1489 |     const uint8_t fontHeight = getFortHeight(fx);
+      |                                              ^~
+In file included from ../main/st7735s.h:4,
+                 from ../main/main.c:21:
+../main/fontx.h:24:34: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   24 | uint8_t getFortHeight(FontxFile *fx);
+      |                       ~~~~~~~~~~~^~
+../main/main.c:1509:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1509 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1509:53: warning: passing argument 5 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1509 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                                                     ^~~~~~~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:84: note: expected 'uint8_t *' {aka 'unsigned char *'} but argument is of type 'const uint8_t *' {aka 'const unsigned char *'}
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                                                          ~~~~~~~~~~^~~~~
+../main/main.c: In function 'Option4Display':
+../main/main.c:1518:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1518 |     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1521:46: warning: passing argument 1 of 'getFortHeight' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1521 |     const uint8_t fontHeight = getFortHeight(fx);
+      |                                              ^~
+In file included from ../main/st7735s.h:4,
+                 from ../main/main.c:21:
+../main/fontx.h:24:34: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   24 | uint8_t getFortHeight(FontxFile *fx);
+      |                       ~~~~~~~~~~~^~
+../main/main.c:1541:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1541 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1541:53: warning: passing argument 5 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1541 |         lcdDrawString(dev, fx, captionXOffset, 130, caption, color);
+      |                                                     ^~~~~~~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:84: note: expected 'uint8_t *' {aka 'unsigned char *'} but argument is of type 'const uint8_t *' {aka 'const unsigned char *'}
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                                                          ~~~~~~~~~~^~~~~
+../main/main.c: In function 'SetTimeLightDisplay':
+../main/main.c:1555:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1555 |     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1561:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1561 |         lcdDrawString(dev, fx, 40, 160, ascii, WHITE);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1563:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1563 |         lcdDrawString(dev, fx, 60, 140, ascii, BLACK);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1565:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1565 |         lcdDrawString(dev, fx, 60, 116, ascii, BLACK);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1568:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1568 |         lcdDrawString(dev, fx, 60, 60, ascii, YELLOW);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1570:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1570 |         lcdDrawString(dev, fx, 60, 36, ascii, YELLOW);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1573:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1573 |         lcdDrawString(dev, fx, 85, 160, ascii, WHITE);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1575:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1575 |         lcdDrawString(dev, fx, 110, 140, ascii, GREEN);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1577:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1577 |         lcdDrawString(dev, fx, 110, 116, ascii, GREEN);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1580:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1580 |         lcdDrawString(dev, fx, 110, 60, ascii, YELLOW);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1582:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1582 |         lcdDrawString(dev, fx, 110, 36, ascii, YELLOW);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1587:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1587 |         lcdDrawString(dev, fx, 40, 160, ascii, WHITE);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1589:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1589 |         lcdDrawString(dev, fx, 60, 140, ascii, GREEN);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1591:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1591 |         lcdDrawString(dev, fx, 60, 116, ascii, GREEN);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1595:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1595 |         lcdDrawString(dev, fx, 60, 60, ascii, BLACK);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1597:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1597 |         lcdDrawString(dev, fx, 60, 36, ascii, BLACK);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1600:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1600 |         lcdDrawString(dev, fx, 85, 160, ascii, WHITE);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1602:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1602 |         lcdDrawString(dev, fx, 110, 140, ascii, GREEN);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1604:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1604 |         lcdDrawString(dev, fx, 110, 116, ascii, GREEN);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1607:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1607 |         lcdDrawString(dev, fx, 110, 60, ascii, YELLOW);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1609:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1609 |         lcdDrawString(dev, fx, 110, 36, ascii, YELLOW);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1613:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1613 |         lcdDrawString(dev, fx, 40, 160, ascii, WHITE);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1615:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1615 |         lcdDrawString(dev, fx, 60, 140, ascii, GREEN);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1617:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1617 |         lcdDrawString(dev, fx, 60, 116, ascii, GREEN);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1621:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1621 |         lcdDrawString(dev, fx, 60, 60, ascii, YELLOW);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1623:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1623 |         lcdDrawString(dev, fx, 60, 36, ascii, YELLOW);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1626:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1626 |         lcdDrawString(dev, fx, 85, 160, ascii, WHITE);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1629:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1629 |         lcdDrawString(dev, fx, 110, 140, ascii, BLACK);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1631:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1631 |         lcdDrawString(dev, fx, 110, 116, ascii, BLACK);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1634:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1634 |         lcdDrawString(dev, fx, 110, 60, ascii, YELLOW);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1636:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1636 |         lcdDrawString(dev, fx, 110, 36, ascii, YELLOW);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1640:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1640 |         lcdDrawString(dev, fx, 40, 160, ascii, WHITE);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1642:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1642 |         lcdDrawString(dev, fx, 60, 140, ascii, GREEN);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1644:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1644 |         lcdDrawString(dev, fx, 60, 116, ascii, GREEN);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1647:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1647 |         lcdDrawString(dev, fx, 60, 60, ascii, YELLOW);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1649:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1649 |         lcdDrawString(dev, fx, 60, 36, ascii, YELLOW);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1652:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1652 |         lcdDrawString(dev, fx, 85, 160, ascii, WHITE);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1655:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1655 |         lcdDrawString(dev, fx, 110, 140, ascii, GREEN);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1657:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1657 |         lcdDrawString(dev, fx, 110, 116, ascii, GREEN);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1661:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1661 |         lcdDrawString(dev, fx, 110, 60, ascii, BLACK);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1663:28: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1663 |         lcdDrawString(dev, fx, 110, 36, ascii, BLACK);
+      |                            ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c: In function 'SlowModeDisplay':
+../main/main.c:1700:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1700 |     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1703:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1703 |     lcdDrawString(dev, fx, 80, 130, ascii, YELLOW);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c: In function 'TerminalModeDisplay':
+../main/main.c:1714:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1714 |     lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c:1717:24: warning: passing argument 2 of 'lcdDrawString' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+ 1717 |     lcdDrawString(dev, fx, 80, 130, ascii, CYAN);
+      |                        ^~
+In file included from ../main/main.c:21:
+../main/st7735s.h:59:46: note: expected 'FontxFile *' but argument is of type 'const FontxFile *'
+   59 | int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color);
+      |                                   ~~~~~~~~~~~^~
+../main/main.c: In function 'scanAdjStr':
+../main/main.c:1788:10: warning: unused variable 'strAdj' [-Wunused-variable]
+ 1788 |     char strAdj[phaseTail - phase];
+      |          ^~~~~~
+[4/8] Linking C static library esp-idf/main/libmain.a
+[5/8] Generating ld/sections.ld
+[6/8] Linking CXX executable m5StickC.elf
+[7/8] Generating binary image from built executable
+esptool.py v4.5.dev2
+Creating esp32 image...
+Merged 2 ELF sections
+Successfully created esp32 image.
+Generated /home/minhnhat/esp/workspace/TrafficLightIoT/build/m5StickC.bin
+[8/8] cd /home/minhnhat/esp/workspace/TrafficLightIoT/build/esp-idf/esptool_py && /home/minhnhat/.espressif/python_env/idf5.1_py3.8_env/bin/python /home/minhnhat/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app /home/minhnhat/esp/workspace/TrafficLightIoT/build/partition_table/partition-table.bin /home/minhnhat/esp/workspace/TrafficLightIoT/build/m5StickC.bin
+m5StickC.bin binary size 0x3f830 bytes. Smallest app partition is 0x100000 bytes. 0xc07d0 bytes (75%) free.

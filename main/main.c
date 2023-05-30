@@ -76,6 +76,8 @@ int G1 = 10, Y1 = 5, G2 = 8, Y2 = 4;
 int R1 = 12, R2 = 15;
 int G1_save = 10, Y1_save = 5, G2_save = 8, Y2_save = 4;
 int R1_save = 12, R2_save = 15;
+int G1_uart = 10, Y1_uart = 5, G2_uart = 8, Y2_uart = 4;
+int R1_uart = 12, R2_uart = 15;
 char G1_str[3], Y1_str[3], G2_str[3], Y2_str[3];
 time_light_chosen_t time_light_chosen = G1_CHOSEN; 
 bool isRED1on = false;
@@ -86,6 +88,7 @@ bool isGREEN2on = false;
 bool isYELLOW2on = false;
 bool isInSlowMode = false;
 bool isLEDTaskRunning = true;
+bool uart_exit = false;
 
 static void uart_event_task(void *);
 static void screen_task(void *);
@@ -119,6 +122,9 @@ static void ManualAdjOptionSelect(ST7735_t * , FontxFile *, int , int , int );
 static int  DetectButton();
 static void LEDAllOff();
 int         scanSetTimeStr(char * str, int len, int *G1, int *Y1, int *G2, int *Y2);
+int         scanAdjStr(char* str, int len, char* str1, char* str2);
+
+
 
 void app_main(void)
 {   
@@ -265,7 +271,16 @@ static void Sub2ManualAdjOptionSelect(ST7735_t * dev, FontxFile *fx, int width, 
 static void uart_event_task(void *pvParameters)
 {
     uart_event_t event;
+    bool loop = true;
+    bool loop1 = true;
+    bool loop2 = true;
+
     size_t buffered_size;
+    char str1[10]="";
+    char str2[10]="";
+
+    static IC74HC595_t IC74HC595;
+    Init74HC595(&IC74HC595, DATA_PIN_595, LATCH_PIN_595, CLOCK_PIN_595);
     char* dtmp = (char*) malloc(RD_BUF_SIZE);
     while(1) {
         //Waiting for UART event.
@@ -273,7 +288,7 @@ static void uart_event_task(void *pvParameters)
         printf("1. Set TimeLight:     !SETTIME! \n");
         printf("2. Manual Adjust:     !ADJ! \n");
         printf("3. Slow Mode:         !SLOW! \n");
-        printf("4. Show Current Time: !SHOW! \n");
+        printf("4. Exit uart:         !x! \n");
         printf("Enter your command: \n");
         if(xQueueReceive(uart0_queue, (void * )&event, (TickType_t)portMAX_DELAY)) {
             bzero(dtmp, RD_BUF_SIZE);
@@ -283,43 +298,194 @@ static void uart_event_task(void *pvParameters)
                     uart_read_bytes(EX_UART_NUM, dtmp, event.size, portMAX_DELAY);
                     printf("%s", dtmp);
                     if(strncmp(dtmp, "!SETTIME!", strlen("!SETTIME!"))==0){
-                        printf("------------SET TIME------------\n");
-                        printf("Command: !PHASE<x>_G1=<num1>_Y1=<num2>!\n");
-                        printf("Example: Phase 1 have G1 = 3 & Y1 = 7 -> !PHASE1_G1=3_Y1=7!\n");
-                        printf("Enter your command: \n");
-                        if(xQueueReceive(uart0_queue, (void *)&event, (TickType_t)portMAX_DELAY)){
-                            bzero(dtmp, RD_BUF_SIZE);
-                            switch (event.type)
-                            {
-                            case UART_DATA:
-                                uart_read_bytes(EX_UART_NUM, dtmp, event.size, portMAX_DELAY);
-                                printf("%s", dtmp);
-                                if(scanSetTimeStr(dtmp, strlen(dtmp), &G1_save, &Y1_save, &G2_save, &Y2_save) == -1){
-                                    printf("\nKhong dung dinh dang\n");
-                                }
-
-                                break;
-                            
-                            default:
-                                break;
-                            }
-                        }
-                        while (1)
+                        
+                        while (loop)
                         {
+                            printf("------------SET TIME------------\n");
+                            printf("1.Command: !PHASE<x>_G1=<num1>_Y1=<num2>!  (!PHASE1_G1=3_Y1=7!)\n");
+                            // printf("Example: Phase 1 have G1 = 3 & Y1 = 7 -> !PHASE1_G1=3_Y1=7!\n");
+                            printf("2.Apply: !APPLY!\n");
+                            printf("3.Exit: !EXIT!\n");
+                        
+                            printf("Command: \n");
+                            if(xQueueReceive(uart0_queue, (void *)&event, (TickType_t)portMAX_DELAY)){
+                                bzero(dtmp, RD_BUF_SIZE);
+                                switch (event.type)
+                                {
+                                case UART_DATA:
+                                    uart_read_bytes(EX_UART_NUM, dtmp, event.size, portMAX_DELAY);
+                                    printf("%s", dtmp);
+                                    if(scanSetTimeStr(dtmp, strlen(dtmp), &G1_uart, &Y1_uart, &G2_uart, &Y2_uart) == 0){
+                                        printf("\nG1=%d - Y1=%d - G2=%d - Y2=%d\n", G1_uart, Y1_uart, G2_uart, Y2_uart);
+                                    }
+                                    else if(strncmp(dtmp, "!APPLY!", strlen("!APPLY!"))==0){
+
+                                        if(isLEDTaskRunning){
+                                            vTaskDelete(TaskHandler_LED);
+                                            isLEDTaskRunning = false;
+                                        }
+                                        LEDAllOff();
+                                        gpio_set_level(LED_YELLOW_PHASE_1, 1);
+                                        gpio_set_level(LED_YELLOW_PHASE_2, 1);
+
+                                        for(int i = 3; i >= 1; i--){
+                                            write4Byte74HC595(&IC74HC595, LED7Seg[i/10], LED7Seg[i%10], LED7Seg[i/10], LED7Seg[i%10]);
+                                            vTaskDelay(pdMS_TO_TICKS(1000));
+                                        }
+                                        gpio_set_level(LED_YELLOW_PHASE_1, 0);
+                                        gpio_set_level(LED_YELLOW_PHASE_2, 0);
+
+                                        R1_uart = G2_uart + Y2_uart;
+                                        R2_uart = G1_uart + Y1_uart;
+
+                                        G1_save = G1_uart;
+                                        Y1_save = Y1_uart;
+                                        R1_save = R1_uart;
+                                        G2_save = G2_uart;
+                                        Y2_save = Y2_uart;
+                                        R2_save = R2_uart;
+                                        G1 = G1_uart;
+                                        Y1 = Y1_uart;
+                                        R1 = R1_uart;
+                                        G2 = G2_uart;
+                                        Y2 = Y2_uart;
+                                        R2 = R2_uart;
+
+                                        isLEDTaskRunning = true;
+	                                    xTaskCreate(&LED_task, "LED task", 1024*4, NULL, 3, &TaskHandler_LED);      
+                                    }else if(strncmp(dtmp, "!EXIT!", strlen("!EXIT!"))==0){
+                                        loop = false;
+                                    }else{
+                                        printf("\nIncorrect command!\n");
+                                    }
+                                    break;
+
+                                default:
+                                    break;
+                                }
+                            }
                             vTaskDelay(10/portTICK_PERIOD_MS);
                         }
                         
 
                     }else if(strncmp(dtmp, "!ADJ!", strlen("!ADJ!"))==0){
-                        gpio_set_level(LED, 0);
+                        while (loop1)
+                        {
+                            printf("------------MANUAL ADJUST------------\n");
+                            printf("1.Command: !PHASE1_COLOR1_PHASE2_COLOR2>!  (!PHASE1_GREEN_PHASE2_YELLOW!)\n");
+                            // printf("Example: Phase 1 have G1 = 3 & Y1 = 7 -> !PHASE1_G1=3_Y1=7!\n");
+                            printf("2.Apply: !APPLY!\n");
+                            printf("3.Exit: !EXIT!\n");
+
+                            printf("Command: \n");
+                            if(xQueueReceive(uart0_queue, (void *)&event, (TickType_t)portMAX_DELAY)){
+                                bzero(dtmp, RD_BUF_SIZE);
+                                switch (event.type)
+                                {
+                                case UART_DATA:
+                                    uart_read_bytes(EX_UART_NUM, dtmp, event.size, portMAX_DELAY);
+                                    printf("%s", dtmp);
+
+                                    
+
+                                    if(scanAdjStr(dtmp, strlen(dtmp), str1, str2) == 0){
+                                        printf("\nPHASE 1: %s -- PHASE 2: %s\n", str1, str2);
+                                    }
+                                    else if(strncmp(dtmp, "!APPLY!", strlen("!APPLY!"))==0){
+                                        if(isLEDTaskRunning){
+                                            vTaskDelete(TaskHandler_LED);
+                                            isLEDTaskRunning = false;
+                                        }
+                                        LEDAllOff();
+                                        gpio_set_level(LED_YELLOW_PHASE_1, 1);
+                                        gpio_set_level(LED_YELLOW_PHASE_2, 1);
+                                        for(int i = 3; i >= 1; i--){
+                                            write4Byte74HC595(&IC74HC595, LED7Seg[i/10], LED7Seg[i%10], LED7Seg[i/10], LED7Seg[i%10]);
+                                            vTaskDelay(pdMS_TO_TICKS(1000));
+                                        }
+                                        gpio_set_level(LED_YELLOW_PHASE_1, 0);
+                                        gpio_set_level(LED_YELLOW_PHASE_2, 0);
+
+                                        if(strncmp(str1, "GREEN", strlen("GREEN"))==0){
+                                            gpio_set_level(LED_GREEN_PHASE_1, 1);
+                                            gpio_set_level(LED_YELLOW_PHASE_1, 0);
+                                            gpio_set_level(LED_RED_PHASE_1, 0);
+                                        }else if(strncmp(str1, "YELLOW", strlen("YELLOW"))==0){
+                                            gpio_set_level(LED_GREEN_PHASE_1, 0);
+                                            gpio_set_level(LED_YELLOW_PHASE_1, 1);
+                                            gpio_set_level(LED_RED_PHASE_1, 0);
+                                        }else if(strncmp(str1, "RED", strlen("RED"))==0){
+                                            gpio_set_level(LED_GREEN_PHASE_1, 0);
+                                            gpio_set_level(LED_YELLOW_PHASE_1, 0);
+                                            gpio_set_level(LED_RED_PHASE_1, 1);
+                                        }
+                                        if(strncmp(str2, "GREEN", strlen("GREEN"))==0){
+                                            gpio_set_level(LED_GREEN_PHASE_2, 1);
+                                            gpio_set_level(LED_YELLOW_PHASE_2, 0);
+                                            gpio_set_level(LED_RED_PHASE_2, 0);
+                                        }else if(strncmp(str2, "YELLOW", strlen("YELLOW"))==0){
+                                            gpio_set_level(LED_GREEN_PHASE_2, 0);
+                                            gpio_set_level(LED_YELLOW_PHASE_2, 1);
+                                            gpio_set_level(LED_RED_PHASE_2, 0);
+                                        }else if(strncmp(str2, "RED", strlen("RED"))==0){
+                                            gpio_set_level(LED_GREEN_PHASE_2, 0);
+                                            gpio_set_level(LED_YELLOW_PHASE_2, 0);
+                                            gpio_set_level(LED_RED_PHASE_2, 1);
+                                        }
+                                    //    write4Byte74HC595(&IC74HC595, LED7Seg[88/10], LED7Seg[88%10], LED7Seg[88/10], LED7Seg[88%10]);                    
+     
+                                    }else if(strncmp(dtmp, "!EXIT!", strlen("!EXIT!"))==0){
+                                        loop1 = false;
+                                        LEDAllOff();
+                                        isLEDTaskRunning = true;
+	                                    xTaskCreate(&LED_task, "LED task", 1024*4, NULL, 3, &TaskHandler_LED); 
+                                    }else{
+                                        printf("\nIncorrect command!\n");
+                                    }
+                                    break;
+                                default:
+                                    break;
+                                }
+                            }
+                            vTaskDelay(10/portTICK_PERIOD_MS);
+                        }
+                        
 
                     }else if(strncmp(dtmp, "!SLOW!", strlen("!SLOW!"))==0){
-                        for(int i=0;i<5;i++){
-                            gpio_set_level(LED, 1);
-                            vTaskDelay(500/portTICK_PERIOD_MS);
-                            gpio_set_level(LED, 0);
-                            vTaskDelay(500/portTICK_PERIOD_MS);
+                        while (loop2){
+                            if(isLEDTaskRunning){
+                                vTaskDelete(TaskHandler_LED);
+                                isLEDTaskRunning = false;
+                            }
+                            gpio_set_level(LED_YELLOW_PHASE_1, 1);
+                            gpio_set_level(LED_YELLOW_PHASE_2, 1);
+                            gpio_set_level(LED_RED_PHASE_1, 0);
+                            gpio_set_level(LED_RED_PHASE_2, 0);
+                            gpio_set_level(LED_GREEN_PHASE_1, 0);
+                            gpio_set_level(LED_GREEN_PHASE_2, 0);                    
+                            if(xQueueReceive(uart0_queue, (void *)&event, (TickType_t)portMAX_DELAY)){
+                                bzero(dtmp, RD_BUF_SIZE);
+                                switch (event.type)
+                                {
+                                case UART_DATA:
+                                    uart_read_bytes(EX_UART_NUM, dtmp, event.size, portMAX_DELAY);
+                                    printf("%s", dtmp);
+                                    if(strncmp(dtmp, "!EXIT!", strlen("!EXIT!"))==0){
+                                        
+                                        loop2 = false;
+
+                                        LEDAllOff();
+                                        isLEDTaskRunning = true;
+	                                    xTaskCreate(&LED_task, "LED task", 1024*4, NULL, 3, &TaskHandler_LED);                                            
+                                    }
+                                default: break;
+                                }
+                            }                 
+                            vTaskDelay(10/portTICK_PERIOD_MS);
                         }
+                    }else if(strncmp(dtmp, "!X!", strlen("!X!"))==0){
+                        uart_exit = true;
+                        // vTaskDelete(TaskHandler_uart);
                     }
                     break;
                 default:
@@ -707,6 +873,7 @@ static void screen_task(void *pvParameters)
                 
                 while(1){
                     vTaskDelay(10/portTICK_PERIOD_MS);
+                    if(uart_exit) break;
                 }   
                 lcdFillScreen(&dev, BLACK);
                 break;
@@ -1558,16 +1725,80 @@ int scanSetTimeStr(char * str, int len, int *G1, int *Y1, int *G2, int *Y2)
     char *phase = strstr(str, "PHASE1");
     if(phase){
         //phase 1
-        printf("\nPHASE 1\n");
+        char *strTmp = strstr(phase, "G1");
+        if(!strTmp) return -1;
+        strTmp += 3;
+        char *strTmpTail = strstr(strTmp, "_");
+        
+        if(strTmpTail - strTmp == 0) return -1;
+        char strG1[strTmpTail - strTmp];
+        strncpy(strG1, strTmp, strTmpTail - strTmp);
+        strG1[strTmpTail - strTmp] = '\0';
+        *G1 = atoi(strG1);
+
+        strTmp = strstr(phase, "Y1");
+        if(!strTmp) return -1;
+        strTmp += 3;
+        strTmpTail = strstr(strTmp, "!");
+        if(!strTmpTail) return -1;
+
+        if(strTmpTail - strTmp == 0) return -1;
+        char strY1[strTmpTail - strTmp];
+        strncpy(strY1, strTmp, strTmpTail - strTmp);
+        strY1[strTmpTail - strTmp] = '\0';
+        *Y1 = atoi(strY1);
         return 0;
     }else{
         phase = strstr(str, "PHASE2");
         if(phase){
             //phase 2
-            printf("\nPHASE 2\n");
+            char *strTmp = strstr(phase, "G2");
+            if(!strTmp) return -1;
+            strTmp += 3;
+            char *strTmpTail = strstr(strTmp, "_");
+
+            if(strTmpTail - strTmp == 0) return -1;
+            char strG2[strTmpTail - strTmp];
+            strncpy(strG2, strTmp, strTmpTail - strTmp);
+            strG2[strTmpTail - strTmp] = '\0';
+            *G2 = atoi(strG2);
+
+            strTmp = strstr(phase, "Y2");
+            if(!strTmp) return -1;
+            strTmp += 3;
+            strTmpTail = strstr(strTmp, "!");
+            if(!strTmpTail) return -1;
+
+            if(strTmpTail - strTmp == 0) return -1;
+            char strY2[strTmpTail - strTmp];
+            strncpy(strY2, strTmp, strTmpTail - strTmp);
+            strY2[strTmpTail - strTmp] = '\0';
+            *Y2 = atoi(strY2);
             return 0;
         }
     }
 
     return -1;
 }
+
+int scanAdjStr(char* str, int len, char* str1, char* str2)
+{
+    char *phase = strstr(str, "PHASE1_");
+    if(!phase) return -1;
+    char *phaseTail = strstr(str, "_PHASE2");
+    if(!phaseTail) return -1;
+    phase += strlen("PHASE1_");
+    char strAdj[phaseTail - phase];
+    strncpy(str1, phase, phaseTail - phase);
+
+
+    phase = strstr(str, "PHASE2_");
+    if(!phase) return -1;
+    phaseTail = strstr(phase, "!");
+    if(!phaseTail) return -1;
+    phase += strlen("PHASE2_");
+    strncpy(str2, phase, phaseTail - phase);
+    
+    return 0;
+}
+
