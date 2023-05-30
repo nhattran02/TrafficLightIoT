@@ -146,7 +146,7 @@ bool spi_master_write_data_word(ST7735_t * dev, uint16_t data, int flag)
 	uint8_t Byte[2];
 	Byte[0] = (data >> 8) & 0xFF;
 	Byte[1] = data & 0xFF;
-	if (flag) printf("spi_master_write_data_word Byte=%02x %02x\n",Byte[0],Byte[1]);
+	// if (flag) printf("spi_master_write_data_word Byte=%02x %02x\n",Byte[0],Byte[1]);
 	gpio_set_level( dev->_dc, SPI_Data_Mode );
 	return spi_master_write_byte( dev->_SPIHandle, Byte, 2);
 }
@@ -652,9 +652,9 @@ int lcdDrawChar(ST7735_t * dev, FontxFile *fxs, uint16_t x, uint16_t y, uint8_t 
 	uint16_t mask;
 	bool rc;
 
-	if(_DEBUG_)printf("_font_direction=%d x=%d y=%d\n",dev->_font_direction,x,y);
+	// if(_DEBUG_)printf("_font_direction=%d x=%d y=%d\n",dev->_font_direction,x,y);
 	rc = GetFontx(fxs, ascii, fonts, &pw, &ph);
-	if(_DEBUG_)printf("GetFontx rc=%d pw=%d ph=%d\n",rc,pw,ph);
+	// if(_DEBUG_)printf("GetFontx rc=%d pw=%d ph=%d\n",rc,pw,ph);
 	if(_DEBUG_)ShowFont(fonts, pw, ph);
 	if (!rc) return 0;
 
@@ -736,7 +736,7 @@ int lcdDrawChar(ST7735_t * dev, FontxFile *fxs, uint16_t x, uint16_t y, uint8_t 
 	if (dev->_font_fill) lcdDrawFillRect(dev, x0, y0, x1, y1, dev->_font_fill_color);
 
 	int bits;
-	if(_DEBUG_)printf("xss=%d yss=%d\n",xss,yss);
+	// if(_DEBUG_)printf("xss=%d yss=%d\n",xss,yss);
 	ofs = 0;
 	yy = yss;
 	xx = xss;
@@ -776,9 +776,9 @@ int lcdDrawChar(ST7735_t * dev, FontxFile *fxs, uint16_t x, uint16_t y, uint8_t 
 
 int lcdDrawString(ST7735_t * dev, FontxFile *fx, uint16_t x, uint16_t y, uint8_t * ascii, uint16_t color) {
 	int length = strlen((char *)ascii);
-	if(_DEBUG_)printf("lcdDrawString length=%d\n",length);
+	// if(_DEBUG_)printf("lcdDrawString length=%d\n",length);
 	for(int i=0;i<length;i++) {
-		if(_DEBUG_)printf("ascii[%d]=%x x=%d y=%d\n",i,ascii[i],x,y);
+		// if(_DEBUG_)printf("ascii[%d]=%x x=%d y=%d\n",i,ascii[i],x,y);
 		if (dev->_font_direction == 0)
 			x = lcdDrawChar(dev, fx, x, y, ascii[i], color);
 		if (dev->_font_direction == 1)

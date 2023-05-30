@@ -109,6 +109,7 @@ static void SubRED2Display(ST7735_t * const dev, const FontxFile * const fx, con
 static void SubGREEN2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void SubYELLOW2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void BACK2Display(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
+static void TerminalModeDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void SlowModeDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void SetTimeLightDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height);
 static void SavedDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height, int idx);
@@ -117,7 +118,7 @@ static void OptionSelect(ST7735_t * , FontxFile *, int , int , int );
 static void ManualAdjOptionSelect(ST7735_t * , FontxFile *, int , int , int );
 static int  DetectButton();
 static void LEDAllOff();
-
+int         scanSetTimeStr(char * str, int len, int *G1, int *Y1, int *G2, int *Y2);
 
 void app_main(void)
 {   
@@ -283,9 +284,26 @@ static void uart_event_task(void *pvParameters)
                     printf("%s", dtmp);
                     if(strncmp(dtmp, "!SETTIME!", strlen("!SETTIME!"))==0){
                         printf("------------SET TIME------------\n");
-                        printf("To set time using the command: !PHASE<x>_G1=<num1>_Y1=<num2>!\n");
-                        printf("Example: Phase 1 have G1 = 3 and Y1 = 7 -> !PHASE1_G1=3_Y1=7!\n");
+                        printf("Command: !PHASE<x>_G1=<num1>_Y1=<num2>!\n");
+                        printf("Example: Phase 1 have G1 = 3 & Y1 = 7 -> !PHASE1_G1=3_Y1=7!\n");
                         printf("Enter your command: \n");
+                        if(xQueueReceive(uart0_queue, (void *)&event, (TickType_t)portMAX_DELAY)){
+                            bzero(dtmp, RD_BUF_SIZE);
+                            switch (event.type)
+                            {
+                            case UART_DATA:
+                                uart_read_bytes(EX_UART_NUM, dtmp, event.size, portMAX_DELAY);
+                                printf("%s", dtmp);
+                                if(scanSetTimeStr(dtmp, strlen(dtmp), &G1_save, &Y1_save, &G2_save, &Y2_save) == -1){
+                                    printf("\nKhong dung dinh dang\n");
+                                }
+
+                                break;
+                            
+                            default:
+                                break;
+                            }
+                        }
                         while (1)
                         {
                             vTaskDelay(10/portTICK_PERIOD_MS);
@@ -684,6 +702,7 @@ static void screen_task(void *pvParameters)
                 break;
             case 4: //terminal
                 lcdFillScreen(&dev, BLACK);
+                TerminalModeDisplay(&dev, fx16, SCREEN_WIDTH, SCREEN_HEIGHT);
                 xTaskCreate(&uart_event_task, "UART Task", 4096, NULL, 2, &TaskHandler_uart);
                 
                 while(1){
@@ -1518,4 +1537,37 @@ static void SlowModeDisplay(ST7735_t * const dev, const FontxFile * const fx, co
     lcdDrawLine(dev, 15, 160, 15, 0, WHITE);
     strcpy((char*)ascii, "    SLOW     ");
     lcdDrawString(dev, fx, 80, 130, ascii, YELLOW);
+}
+
+
+static void TerminalModeDisplay(ST7735_t * const dev, const FontxFile * const fx, const int width, const int height)
+{
+    lcdSetFontDirection(dev, DIRECTION270);
+    static uint8_t ascii[30];
+    // strcpy((char*)ascii, "   Manual Adjust    ");
+    strcpy((char*)ascii, "    Terminal Mode   ");
+
+    lcdDrawString(dev, fx, 15, 160, ascii, GREEN);
+    lcdDrawLine(dev, 15, 160, 15, 0, WHITE);
+    strcpy((char*)ascii, "Terminal Mode   ");
+    lcdDrawString(dev, fx, 80, 130, ascii, CYAN);
+}
+
+int scanSetTimeStr(char * str, int len, int *G1, int *Y1, int *G2, int *Y2)
+{
+    char *phase = strstr(str, "PHASE1");
+    if(phase){
+        //phase 1
+        printf("\nPHASE 1\n");
+        return 0;
+    }else{
+        phase = strstr(str, "PHASE2");
+        if(phase){
+            //phase 2
+            printf("\nPHASE 2\n");
+            return 0;
+        }
+    }
+
+    return -1;
 }
